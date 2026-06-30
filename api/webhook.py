@@ -10,8 +10,7 @@ from bot.handlers import common, history, photo, settings, start
 from bot.i18n_middleware import SimpleI18nMiddleware
 from bot.middlewares import DbSessionMiddleware
 from core.config import config
-from db.database import SessionLocal, engine
-from db.models import Base
+from db.database import SessionLocal
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

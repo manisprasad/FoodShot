@@ -56,3 +56,8 @@ tasks:
     desc: Run Ruff formatter
     cmds:
       - poetry run ruff format .
+
+  test:
+    desc: Run pytest
+    cmds:
+      - poetry run pytest -v
