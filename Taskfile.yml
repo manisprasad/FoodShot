@@ -30,3 +30,13 @@ tasks:
     desc: Show docker logs
     cmds:
       - docker-compose logs -f
+
+  lint:
+    desc: Run Ruff check and fix
+    cmds:
+      - poetry run ruff check --fix .
+
+  format:
+    desc: Run Ruff formatter
+    cmds:
+      - poetry run ruff format .

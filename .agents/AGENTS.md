@@ -69,3 +69,9 @@ total      = carb_dose + correction
 - Localization: all user-facing strings go through i18n (EN + UK).
 - Async everywhere: use async SQLAlchemy, aiohttp for external APIs.
 - Follow existing code style and project structure.
+
+## AI Development Workflow
+1. **Always use Poetry and Taskfile:** All script executions, tests, and linting must be run via `Taskfile.yml`. If a required command is missing, add it to `Taskfile.yml` first.
+2. **Post-Code Verification:** After writing code, ALWAYS run Ruff (linting and formatting) via the appropriate Taskfile commands.
+3. **Problem Alignment:** Verify that the code precisely solves the user's intended problem. If something is ambiguous, unclear, or doesn't align with the project constraints, **STOP and ask the user** before proceeding.
+4. **Commit (DO NOT PUSH):** If confident that the code is correct and all checks pass, commit the changes locally with a descriptive commit message explaining what was done. If the commit fails, resolve the issue and try again. Do **NOT** push the code to remote; leave pushing to the user.
