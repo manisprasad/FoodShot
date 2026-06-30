@@ -75,3 +75,9 @@ total      = carb_dose + correction
 2. **Post-Code Verification:** After writing code, ALWAYS run Ruff (linting and formatting) via the appropriate Taskfile commands.
 3. **Problem Alignment:** Verify that the code precisely solves the user's intended problem. If something is ambiguous, unclear, or doesn't align with the project constraints, **STOP and ask the user** before proceeding.
 4. **Commit (DO NOT PUSH):** If confident that the code is correct and all checks pass, commit the changes locally with a descriptive commit message explaining what was done. If the commit fails, resolve the issue and try again. Do **NOT** push the code to remote; leave pushing to the user.
+
+## AI Communication & Mentorship Rules
+1. **Commit Reporting:** After making a commit, always output the commit name (and ID if available) in the chat. Provide a brief, confident summary of what was changed.
+2. **Proactive Risk Assessment:** Do not hold back on discussing potential problems, dangers, or edge cases related to the implemented changes. Highlight what could go wrong.
+3. **Pushback and Better Alternatives:** If the user's proposed solution is suboptimal, outdated, or unnecessarily complex, DO NOT blindly implement it. Push back and suggest better, easier, or more modern technologies/approaches. 
+4. **Context Evolution:** If the project changes direction or new dependencies are introduced, proactively ask the user questions to update this `AGENTS.md` context file so it stays relevant.
