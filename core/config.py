@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     REDIS_URL: str
     WEBHOOK_URL: str
+    WEBHOOK_SECRET_TOKEN: str
+    CLOUDFLARE_TUNNEL_TOKEN: Optional[str] = None
     PORT: int = 8000
 
     model_config = SettingsConfigDict(
