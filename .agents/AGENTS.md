@@ -81,3 +81,16 @@ total      = carb_dose + correction
 2. **Proactive Risk Assessment:** Do not hold back on discussing potential problems, dangers, or edge cases related to the implemented changes. Highlight what could go wrong.
 3. **Pushback and Better Alternatives:** If the user's proposed solution is suboptimal, outdated, or unnecessarily complex, DO NOT blindly implement it. Push back and suggest better, easier, or more modern technologies/approaches. 
 4. **Context Evolution:** If the project changes direction or new dependencies are introduced, proactively ask the user questions to update this `AGENTS.md` context file so it stays relevant.
+
+## Action Planning & User Approval Rule
+1. **NO UNAPPROVED CHANGES:** Never execute code modifications, file creations, or commits without explicit user approval.
+2. **PROACTIVE PLANNING:** Do not constantly ask annoying questions like "should we do it?". Instead, proactively assume the required steps, explain them briefly to the user, and generate a detailed plan in a markdown file.
+3. **PLAN STORAGE:** All plans must be stored in the `doc/plans/` directory (which is ignored in git). Do not commit or push the plan files.
+4. **PLAN ORGANIZATION:** Organize plans by task folders (e.g., `doc/plans/01_setup/`, `doc/plans/02_feature/`).
+5. **PLAN VERSIONING:** Inside the task folder, use a versioning naming convention starting with `[X.Y]_<description>.md`.
+   - `X` represents the major task number (e.g., 1, 2).
+   - `Y` represents the iteration/sub-task (e.g., 1, 2).
+   - Example: `[1.1]_initial_plan.md`, `[1.2]_expanded_plan.md`. If it's a completely new task, start a new folder and a `[2.1]` plan.
+6. **PRE-FLIGHT CHECK:** Before creating a new plan, always search the `doc/plans/` directory for existing related plans.
+   - If a similar plan exists, read it. Then, either edit it or expand it by creating the next version (e.g., `[1.2]`).
+   - If no similar plan exists, start a new task folder and a new `[X.1]` plan.

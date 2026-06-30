@@ -20,3 +20,4 @@ venv.bak/
 
 # Project specific
 postgres_data/
+doc/plans/
