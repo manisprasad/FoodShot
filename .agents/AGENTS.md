@@ -61,7 +61,8 @@ total      = carb_dose + correction
 - Out of scope for MVP: CGM integrations (Dexcom, Libre), complex multi-component meal splitting
 
 ## Documentation
-- MVP spec: https://github.com/soroqn1/foodshot-docs/blob/main/MVP.md
+- **Public MVP spec:** https://github.com/soroqn1/foodshot-docs/blob/main/MVP.md (Local path: `/Users/soroqn/me/private-code/foodshot-docs/MVP.md`). This repository is public, meant for recruiters and future users. It contains high-level business goals.
+- **Internal Technical MVP:** `doc/MVP.md` in this repository. It contains technical implementation details, DB schemas, etc. Do NOT overwrite the internal MVP with the public MVP.
 - Architecture diagram: https://github.com/soroqn1/foodshot-docs/blob/main/foodshot_architecture.svg
 
 ## Working rules
