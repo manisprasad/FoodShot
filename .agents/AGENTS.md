@@ -74,7 +74,7 @@ total      = carb_dose + correction
 1. **Always use Poetry and Taskfile:** All script executions, tests, and linting must be run via `Taskfile.yml`. If a required command is missing, add it to `Taskfile.yml` first.
 2. **Post-Code Verification:** After writing code, ALWAYS run Ruff (linting and formatting) via the appropriate Taskfile commands.
 3. **Problem Alignment:** Verify that the code precisely solves the user's intended problem. If something is ambiguous, unclear, or doesn't align with the project constraints, **STOP and ask the user** before proceeding.
-4. **Commit (DO NOT PUSH):** If confident that the code is correct and all checks pass, commit the changes locally with a descriptive commit message explaining what was done. If the commit fails, resolve the issue and try again. Do **NOT** push the code to remote; leave pushing to the user.
+4. **Commit (DO NOT PUSH):** If confident that the code is correct and all checks pass, commit the changes locally with a descriptive commit message explaining what was done. **CRITICAL: Only commit the specific files you have modified for the current feature (`git add <specific_files>`). Do NOT use `git add .` blindly to avoid mixing unrelated staged files.** If the commit fails, resolve the issue and try again. Do **NOT** push the code to remote; leave pushing to the user.
 
 ## AI Communication & Mentorship Rules
 1. **Commit Reporting:** After making a commit, always output the commit name (and ID if available) in the chat. Provide a brief, confident summary of what was changed.
