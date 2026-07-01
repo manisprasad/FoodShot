@@ -1,67 +1,82 @@
-# FoodShot
+<div align="center">
+  <h1>📸 FoodShot</h1>
+  <p><b>Your AI-powered smart diary for food, insulin, and blood glucose tracking.</b></p>
+  <p><i>Snap a photo. Get carbs. Calculate insulin. Find patterns.</i></p>
+</div>
 
-Your smart diary for food, insulin, and blood glucose tracking, built to help you find repeating patterns in your body's behavior and seamlessly export data for your doctor.
+---
 
-**The Role of AI:** Artificial Intelligence in FoodShot is strictly limited to one task — **recognizing food from photos** (estimating dish name and weight). The AI **does not** manage your diary or calculate your insulin. All nutritional data is pulled from official US databases (USDA), and all calculations use transparent, hardcoded medical formulas.
+## 🎯 The Problem We Solve
+Living with diabetes means making dozens of mathematical decisions every day based on food weight, carbs, current blood glucose, and personal insulin factors. 
+
+**FoodShot** simplifies this routine. Built entirely inside Telegram (where you already spend your time), it allows users to simply snap a photo of their meal. The bot estimates the dish and its weight, fetches precise nutritional data from official US databases (USDA), and optionally calculates the required insulin bolus based on transparent medical formulas.
 
 ## ✨ Core Philosophy
-- **Diary & Patterns First:** The main goal is to log your meals, glucose, and insulin to find repeating patterns over time.
-- **AI as a Simple Assistant:** GPT-4o is only used to save you time by identifying what's on your plate. It does not make decisions.
-- **No Extra Apps:** Everything lives in Telegram, where you already spend your time.
-- **Doctor-Friendly Exports:** Effortlessly export your history and patterns for medical professionals or personal spreadsheets.
-- **Freemium & Accessible:** 2-3 free requests per day for everyone. A symbolic $2-3 premium tier exists purely to support the project and cover API costs.
-- **Optional Insulin Bonus:** For those who need it, the bot provides a transparent bolus calculation based on your ICR and ISF. It's completely optional.
+- **Diary & Patterns First:** The main goal is to log your meals, glucose, and insulin to find repeating patterns over time (e.g., "Why does my glucose always spike after this specific breakfast?").
+- **AI as a Simple Assistant:** GPT-4o Vision is **strictly** used to recognize what's on your plate. It does **not** manage your diary or make medical calculations. 
+- **Doctor-Friendly Exports:** Effortlessly export your history and patterns into CSV/Excel for your endocrinologist.
+- **Transparent Math:** All insulin calculations use hardcoded, standard medical formulas based on your personal ICR (Insulin-to-Carb Ratio) and ISF (Insulin Sensitivity Factor).
 
-**Disclaimer:** The bot is an assistant, not a doctor. All calculations are transparent but serve as estimates. It does not replace professional medical advice or independent calculations.
+> **Disclaimer:** The bot is an assistant, not a doctor. All calculations are transparent but serve as estimates. It does not replace professional medical advice.
 
 ## 🛠 Tech Stack
+We built FoodShot with modern, asynchronous, and scalable technologies:
 
 - **Bot Framework:** [aiogram 3.x](https://docs.aiogram.dev/)
-- **Web Server:** [FastAPI](https://fastapi.tiangolo.com/) (Webhook handler)
-- **Database:** PostgreSQL 15 + SQLAlchemy 2.0 (asyncpg)
-- **State & Cache:** Redis 7
+- **Web Server:** [FastAPI](https://fastapi.tiangolo.com/) (High-performance Webhook handler)
+- **Database:** PostgreSQL 15 + SQLAlchemy 2.0 (`asyncpg`) + Alembic for migrations
+- **State & Cache:** Redis 7 (for FSM and API caching)
 - **Integrations:** OpenAI GPT-4o Vision API, USDA FoodData Central API
-- **Deployment:** Docker, Docker Compose
+- **Deployment:** Docker, Docker Compose, Cloudflare Zero Trust Tunnels
+- **Testing:** `pytest` + `pytest-asyncio`
 
 ## 🏗 Architecture
-
-The system operates strictly via webhooks. Telegram sends updates to the FastAPI endpoint, which routes them to aiogram handlers.
+The system operates strictly via webhooks for maximum performance and zero polling overhead. Telegram sends updates to our FastAPI endpoint, which securely validates them via a secret token and routes them to `aiogram` handlers.
 
 ![FoodShot Architecture](./doc/foodshot_architecture.svg)
 
-## 🚀 Getting Started
+## 🚀 Getting Started (Local Development)
+
+Want to run FoodShot locally to test it or record a demo? Here is the setup:
 
 ### Prerequisites
 - Docker and Docker Compose
 - Taskfile (`go-task`)
-- Python 3.11+ (for local development)
+- Python 3.11+
 - Poetry
+- [ngrok](https://ngrok.com/) (for local webhooks)
 
-### Installation
+### 1. Configuration
+```bash
+git clone <repo_url> && cd foodshot
+cp .env.example .env
+```
+Edit `.env` and fill in your keys. Make sure you set a random `WEBHOOK_SECRET_TOKEN` (e.g., `my_secret_token_123`).
 
-1. **Clone and Configure:**
-   ```bash
-   git clone <repo_url> && cd foodshot
-   cp .env.example .env
-   ```
-   *Edit `.env` and fill in `BOT_TOKEN`, `OPENAI_API_KEY`, and `USDA_API_KEY`.*
+### 2. Start the Application
+Install dependencies and start the database and bot locally:
+```bash
+task install
+task dev
+```
 
-2. **Start Infrastructure (DB & Redis):**
-   ```bash
-   task infra
-   ```
+### 3. Setup Ngrok Webhook
+In a new terminal window, expose your local port 8000 to the internet:
+```bash
+ngrok http 8000
+```
+Copy the `https://...ngrok-free.app` URL generated by ngrok.
+Go back to your `.env` file and set:
+```env
+WEBHOOK_URL=https://<your-ngrok-url>.ngrok-free.app/webhook
+```
+Restart the bot (`task dev`), and it will automatically register the new webhook with Telegram!
 
-3. **Run Application (Docker):**
-   ```bash
-   task up
-   ```
-
-### Local Development
-
-1. Install dependencies: `task install`
-2. Start local server: `task dev`
-3. Expose port using ngrok: `ngrok http 8000`
-4. Update `WEBHOOK_URL` in `.env`.
+## 🧪 Testing
+We maintain rigorous tests for critical components, especially the medical math:
+```bash
+task test
+```
 
 ## 📜 License
 Commercial / Proprietary. Selected source files are made available for portfolio demonstration purposes only. All rights reserved.
