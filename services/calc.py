@@ -7,7 +7,7 @@ def calculate_bolus(
 ) -> dict:
     if icr <= 0:
         raise ValueError("ICR must be greater than 0")
-        
+
     carb_dose = carbs / icr
     correction_dose = 0.0
 

@@ -9,6 +9,7 @@ from alembic import context
 
 import sys
 from os.path import dirname, abspath
+
 sys.path.append(dirname(dirname(abspath(__file__))))
 
 from core.config import config as app_config

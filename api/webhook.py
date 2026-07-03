@@ -33,8 +33,7 @@ dp.include_router(photo.router)
 async def lifespan(app: FastAPI):
     logger.info("Setting Telegram webhook to %s", config.WEBHOOK_URL)
     await bot.set_webhook(
-        url=config.WEBHOOK_URL,
-        secret_token=config.WEBHOOK_SECRET_TOKEN
+        url=config.WEBHOOK_URL, secret_token=config.WEBHOOK_SECRET_TOKEN
     )
     yield
     await bot.delete_webhook()
@@ -46,13 +45,12 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/webhook")
 @app.post("/webhook/webhook")
 async def telegram_webhook(
-    update: dict,
-    x_telegram_bot_api_secret_token: str = Header(default=None)
+    update: dict, x_telegram_bot_api_secret_token: str = Header(default=None)
 ):
     if x_telegram_bot_api_secret_token != config.WEBHOOK_SECRET_TOKEN:
         logger.warning("Invalid webhook secret token received")
         raise HTTPException(status_code=401, detail="Invalid secret token")
-        
+
     telegram_update = types.Update(**update)
     await dp.feed_update(bot, telegram_update)
     return {"status": "ok"}
