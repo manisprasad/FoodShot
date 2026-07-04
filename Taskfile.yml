@@ -7,9 +7,9 @@ tasks:
       - poetry install
 
   dev:
-    desc: Start infrastructure and run FastAPI locally
+    desc: Start infrastructure, Cloudflare tunnel, and run FastAPI locally
     cmds:
-      - docker-compose up -d db redis
+      - docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d db redis cloudflared
       - poetry run uvicorn api.webhook:app --host 0.0.0.0 --port 8000 --reload
 
   tunnel:
