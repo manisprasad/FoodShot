@@ -6,6 +6,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     BOT_TOKEN: str
     OPENAI_API_KEY: str
+    GEMINI_API_KEY: Optional[str] = None
     USDA_API_KEY: Optional[str] = None
     NUTRITIONIX_APP_ID: Optional[str] = None
     NUTRITIONIX_API_KEY: Optional[str] = None
