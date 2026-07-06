@@ -23,6 +23,7 @@ aiogram-i18n = {extras = ["fluent"], version = "^1.4.1"}
 fluent-runtime = "^0.4.0"
 "fluent.compiler" = "^0.3.0"
 alembic = "^1.18.5"
+loguru = "^0.7.3"
 
 [build-system]
 requires = ["poetry-core"]

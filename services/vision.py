@@ -2,6 +2,7 @@ import base64
 
 from openai import AsyncOpenAI
 from pydantic import BaseModel
+from loguru import logger
 
 from core.config import config
 
@@ -55,5 +56,5 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
         return parsed_result.model_dump()
 
     except Exception as e:
-        print(f"Error during vision analysis: {e}")
+        logger.error(f"Error during vision analysis: {e}")
         return None

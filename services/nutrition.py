@@ -1,6 +1,7 @@
 import httpx
 
 from core.config import config
+from loguru import logger
 
 
 async def get_nutrition_data(query: str, weight_g: int) -> dict:
@@ -8,7 +9,7 @@ async def get_nutrition_data(query: str, weight_g: int) -> dict:
     params = {"api_key": config.USDA_API_KEY, "query": query, "pageSize": 1}
 
     async with httpx.AsyncClient() as client:
-        print(f"DEBUG: Searching nutrition for: {query}")
+        logger.info(f"Searching nutrition for: {query}")
         response = await client.get(url, params=params)
         data = response.json()
 

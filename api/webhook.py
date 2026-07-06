@@ -1,4 +1,3 @@
-import logging
 from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher, types
@@ -11,9 +10,10 @@ from bot.i18n_middleware import SimpleI18nMiddleware
 from bot.middlewares import DbSessionMiddleware
 from core.config import config
 from db.database import SessionLocal
+from core.logger import setup_logging
+from loguru import logger
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+setup_logging()
 
 bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode="Markdown"))
 storage = RedisStorage.from_url(config.REDIS_URL)
