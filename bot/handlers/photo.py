@@ -56,6 +56,10 @@ async def handle_photo(
     weight_g = vision_data["weight_g"]
     confidence = vision_data.get("confidence", "medium")
 
+    if weight_g <= 0:
+        logger.error(f"Invalid weight_g received from Vision API: {weight_g}")
+        return await status_msg.edit_text(i18n.get("not-found"))
+
     try:
         nutrition_data = await nutrition.get_nutrition_data(dish_en, weight_g)
         if not nutrition_data:
