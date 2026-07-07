@@ -54,3 +54,4 @@
 
 ## Future Refactorings & Features (Deferred)
 - **History Message Length Limits (Issue 16):** The risk of the `/history` output exceeding Telegram's 4096-character limit will be addressed during the global refactoring of the import/export features (e.g. when implementing Excel/CSV exports for doctors, or paginated message views). We must keep this limit in mind when designing the history presentation.
+- **Medical Parameters Range Validation (Issue 9):** Range checks for ICR, ISF, and target blood glucose will be implemented as part of the "Diabetes Mode" settings configuration during the product pivot phase.

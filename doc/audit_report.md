@@ -46,7 +46,7 @@
 - **Recommendation:** Validate `weight_g > 0` immediately after vision returns. If invalid, treat it as a failed recognition and notify the user.
 
 ## 9. No Range Validation on Medical Parameters (High)
-- [ ] **Issue:** During registration (`bot/handlers/start.py`), ICR, ISF, and target_bg are only validated as `float()`. There are no range checks.
+- [ ] **Issue:** During registration (`bot/handlers/start.py`), ICR, ISF, and target_bg are only validated as `float()`. There are no range checks. *(DEFERRED: To be implemented as part of Diabetes Mode during the product pivot phase)*
 - **Risk:** `ICR = 0` → `ZeroDivisionError` in `services/calc.py:11`. `ICR < 0` → negative bolus dose (dangerous medical output). `ISF = 0` → `ZeroDivisionError` in `services/calc.py:17`. Although `calc.py` raises `ValueError` for ICR/ISF ≤ 0, nobody catches that `ValueError` in `photo.py` (see #6).
 - **Recommendation:** Validate input ranges at registration and settings update time: `ICR ∈ [1, 100]`, `ISF ∈ [0.1, 20]`, `target_bg ∈ [3.0, 10.0]`. Also catch `ValueError` from `calc.py` in the photo handler.
 
