@@ -6,6 +6,7 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
 from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
 
+from sqlalchemy import text
 from bot.handlers import common, history, photo, settings, start
 from bot.i18n_middleware import SimpleI18nMiddleware
 from bot.middlewares import DbSessionMiddleware
@@ -57,6 +58,18 @@ async def process_update_with_timeout(
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/health")
+async def health_check():
+    try:
+        async with SessionLocal() as session:
+            await session.execute(text("SELECT 1"))
+        await redis_client.ping()
+        return {"status": "healthy"}
+    except Exception as e:
+        logger.exception("Health check failed")
+        raise HTTPException(status_code=503, detail=f"Service unavailable: {str(e)}")
 
 
 @app.post("/webhook")

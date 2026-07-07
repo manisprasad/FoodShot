@@ -80,10 +80,18 @@ TEXTS = {
 }
 
 
+class SafeDict(dict):
+    def __missing__(self, key):
+        return f"{{{key}}}"
+
+
 class I18n:
     def __init__(self, lang: str):
         self.lang = lang
 
     def get(self, key: str, **kwargs) -> str:
         text = TEXTS.get(self.lang, TEXTS["en"]).get(key, key)
-        return text.format(**kwargs)
+        try:
+            return text.format_map(SafeDict(kwargs))
+        except Exception:
+            return text
