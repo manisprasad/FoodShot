@@ -76,7 +76,7 @@
 - **Recommendation:** Add a non-root user: `RUN adduser --disabled-password --gecos '' appuser` and `USER appuser`.
 
 ## 15. `.env` May Be in Git History (Moderate)
-- [ ] **Issue:** `.env` file (1KB+) exists in the working directory. It may have been committed to git history with real API keys.
+- [x] **Issue:** `.env` file (1KB+) exists in the working directory. It may have been committed to git history with real API keys. *(VERIFIED: Checked git log history, .env was never committed and is correctly ignored by .gitignore)*
 - **Risk:** Anyone with access to the git history can extract `BOT_TOKEN`, `OPENAI_API_KEY`, `USDA_API_KEY`, `DATABASE_URL`, and `WEBHOOK_SECRET_TOKEN`.
 - **Recommendation:** Verify `.env` is in `.gitignore`. Run `git log --all --full-history -- .env` to check if it was ever committed. If so, rotate all credentials and use `git filter-repo` to remove it from history.
 
