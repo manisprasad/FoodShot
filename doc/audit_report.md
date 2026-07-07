@@ -61,7 +61,7 @@
 - **Recommendation:** Wrap cache reads/writes in `try/except redis.RedisError` and fall through to the USDA API call on cache failure.
 
 ## 12. No Rate Limiting or Abuse Protection (Moderate)
-- [ ] **Issue:** There is no throttling or rate limiting anywhere in the bot. Any user can send unlimited photos.
+- [ ] **Issue:** There is no throttling or rate limiting anywhere in the bot. Any user can send unlimited photos. *(DEFERRED: To be implemented during the payment and subscription integration phase)*
 - **Risk:** A single malicious user or bot can flood the webhook with photos → unlimited OpenAI API calls ($$$) → exhaust DB connections → exhaust USDA rate limits → denial of service for all users.
 - **Recommendation:** Use aiogram's built-in `Throttling` middleware or implement a Redis-based rate limiter (e.g., max 5 photos/minute per user, max 30/day for free tier).
 
