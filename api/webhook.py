@@ -1,14 +1,16 @@
+import asyncio
 from contextlib import asynccontextmanager
 
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
-from fastapi import FastAPI, Header, HTTPException
+from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
 
 from bot.handlers import common, history, photo, settings, start
 from bot.i18n_middleware import SimpleI18nMiddleware
 from bot.middlewares import DbSessionMiddleware
 from core.config import config
+from core.redis_client import redis_client
 from db.database import SessionLocal
 from core.logger import setup_logging
 from loguru import logger
@@ -39,18 +41,47 @@ async def lifespan(app: FastAPI):
     await bot.delete_webhook()
 
 
+async def process_update_with_timeout(
+    dp: Dispatcher, bot: Bot, update: types.Update, timeout: float = 120.0
+):
+    try:
+        await asyncio.wait_for(dp.feed_update(bot, update), timeout=timeout)
+    except asyncio.TimeoutError:
+        logger.error(
+            "Processing of update %s timed out after %s seconds",
+            update.update_id,
+            timeout,
+        )
+    except Exception as e:
+        logger.exception("Error processing update %s: %s", update.update_id, e)
+
+
 app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/webhook")
 @app.post("/webhook/webhook")
 async def telegram_webhook(
-    update: dict, x_telegram_bot_api_secret_token: str = Header(default=None)
+    update: dict,
+    background_tasks: BackgroundTasks,
+    x_telegram_bot_api_secret_token: str = Header(default=None),
 ):
     if x_telegram_bot_api_secret_token != config.WEBHOOK_SECRET_TOKEN:
         logger.warning("Invalid webhook secret token received")
         raise HTTPException(status_code=401, detail="Invalid secret token")
 
     telegram_update = types.Update(**update)
-    await dp.feed_update(bot, telegram_update)
+
+    update_id = update.get("update_id")
+    if update_id is not None:
+        cache_key = f"processed_update:{update_id}"
+        try:
+            is_new = await redis_client.set(cache_key, "processing", ex=120, nx=True)
+            if not is_new:
+                logger.info("Update %s already processing or processed", update_id)
+                return {"status": "ok"}
+        except Exception as e:
+            logger.warning("Redis is unavailable for idempotency: %s", e)
+
+    background_tasks.add_task(process_update_with_timeout, dp, bot, telegram_update)
     return {"status": "ok"}
