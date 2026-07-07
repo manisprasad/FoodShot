@@ -35,3 +35,11 @@ All planning documents must be saved in `doc/plans/` without providing `Artifact
 
 ### 4. Git Staging
 Always stage specific files (`git add path/to/file.py`) rather than using `git add .` to avoid committing unwanted scratch files or git-ignored plan folders.
+
+### 5. Documentation Structure & Maintenance
+Maintain the `doc/` directory with strict organization:
+- `doc/plans/`: Contains active and completed step-by-step task plans. Folder naming: `XX_description/`. File naming: `[X.Y]_description.md`. Statuses: `PROPOSED`, `IN PROGRESS`, `DONE`. Always mark completed plans as `DONE` at task completion.
+- `doc/security/`: Dedicated directory for audits, vulnerabilities, and technical debt. Folder naming: `XX_category/`. File naming: `[X.Y]_description.md`. Maintain and update checklists when vulnerabilities are verified or fixed.
+- `doc/roadmap/`: Future strategic plans and pivot documents.
+- `doc/marketing/`: Drafts, blog posts, and articles.
+- Root `doc/`: Keep only core documentation (`MVP.md`, `links.md`, architecture diagrams).
