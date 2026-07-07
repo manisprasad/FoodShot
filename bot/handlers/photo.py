@@ -7,6 +7,7 @@ from bot.states import FoodAnalysis
 from core.i18n import I18n
 from db import crud
 from services import calc, nutrition, vision
+from loguru import logger
 
 router = Router()
 
@@ -40,20 +41,28 @@ async def handle_photo(
     photo_file = await bot.get_file(photo.file_id)
     photo_bytes = await bot.download_file(photo_file.file_path)
 
-    vision_data = await vision.analyze_food_photo(
-        photo_bytes.read(), language=user.language
-    )
-    if not vision_data:
-        return await status_msg.edit_text(i18n.get("not-found"))
+    try:
+        vision_data = await vision.analyze_food_photo(
+            photo_bytes.read(), language=user.language
+        )
+        if not vision_data:
+            return await status_msg.edit_text(i18n.get("not-found"))
+    except vision.VisionAPIError as e:
+        logger.error(f"Vision API error: {e}")
+        return await status_msg.edit_text(i18n.get("service-unavailable"))
 
     dish_display = vision_data["dish_name"]
     dish_en = vision_data.get("dish_name_en", dish_display)
     weight_g = vision_data["weight_g"]
     confidence = vision_data.get("confidence", "medium")
 
-    nutrition_data = await nutrition.get_nutrition_data(dish_en, weight_g)
-    if not nutrition_data:
-        return await status_msg.edit_text(i18n.get("not-found"))
+    try:
+        nutrition_data = await nutrition.get_nutrition_data(dish_en, weight_g)
+        if not nutrition_data:
+            return await status_msg.edit_text(i18n.get("not-found"))
+    except nutrition.USDAAPIError as e:
+        logger.error(f"Nutrition API error: {e}")
+        return await status_msg.edit_text(i18n.get("service-unavailable"))
 
     history = await crud.get_user_history(session, user.id, limit=1)
     last_bg = (

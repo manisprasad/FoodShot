@@ -7,9 +7,19 @@ from core.redis_client import redis_client
 from loguru import logger
 
 
+class USDAAPIError(Exception):
+    """Raised when the USDA API fails to process the request."""
+
+    pass
+
+
 async def get_nutrition_data(query: str, weight_g: int) -> dict:
     cache_key = f"nutrition:usda:{query.lower()}"
-    cached_data = await redis_client.get(cache_key)
+    cached_data = None
+    try:
+        cached_data = await redis_client.get(cache_key)
+    except Exception as e:
+        logger.warning(f"Redis get failed: {e}. Falling back to USDA API.")
 
     if cached_data:
         logger.info(f"Nutrition cache HIT for: {query}")
@@ -18,10 +28,17 @@ async def get_nutrition_data(query: str, weight_g: int) -> dict:
         url = "https://api.nal.usda.gov/fdc/v1/foods/search"
         params = {"api_key": config.USDA_API_KEY, "query": query, "pageSize": 1}
 
-        async with httpx.AsyncClient() as client:
-            logger.info(f"Nutrition cache MISS. Fetching from USDA API for: {query}")
-            response = await client.get(url, params=params)
-            data = response.json()
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                logger.info(
+                    f"Nutrition cache MISS. Fetching from USDA API for: {query}"
+                )
+                response = await client.get(url, params=params)
+                response.raise_for_status()
+                data = response.json()
+        except (httpx.HTTPStatusError, httpx.RequestError) as e:
+            logger.error(f"USDA API request failed for query {query}: {e}")
+            raise USDAAPIError("USDA API is temporarily unavailable") from e
 
         if not data.get("foods"):
             return None
@@ -41,7 +58,10 @@ async def get_nutrition_data(query: str, weight_g: int) -> dict:
             "kcal": nutrients.get("Energy", 0),
         }
 
-        await redis_client.setex(cache_key, 604800, json.dumps(base_nutrients))
+        try:
+            await redis_client.setex(cache_key, 604800, json.dumps(base_nutrients))
+        except Exception as e:
+            logger.warning(f"Redis setex failed: {e}")
 
     ratio = weight_g / 100
 

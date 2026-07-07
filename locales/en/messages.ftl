@@ -15,3 +15,4 @@ history-empty = Your history is empty.
 settings-main = ⚙️ Your Settings: Language: { $lang }. ICR: { $icr }. ISF: { $isf }. Target BG: { $target }. Insulin: { $type }. Choose an action:
 btn-change-lang = 🌍 Change Language
 lang-changed = Language changed to English!
+service-unavailable = Technical error: Service is temporarily unavailable. Please try again later.

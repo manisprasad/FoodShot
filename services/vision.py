@@ -6,7 +6,14 @@ from loguru import logger
 
 from core.config import config
 
-client = AsyncOpenAI(api_key=config.OPENAI_API_KEY)
+
+class VisionAPIError(Exception):
+    """Raised when the vision API fails to process the request."""
+
+    pass
+
+
+client = AsyncOpenAI(api_key=config.OPENAI_API_KEY, timeout=15.0)
 
 
 class FoodRecognitionResult(BaseModel):
@@ -57,4 +64,4 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
 
     except Exception as e:
         logger.error(f"Error during vision analysis: {e}")
-        return None
+        raise VisionAPIError("Vision API analysis failed") from e
