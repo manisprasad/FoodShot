@@ -49,3 +49,8 @@
 - **Proposed Limits:**
   - **Free Tier:** 3 photo analyses per day (tracked via Redis counter resetting daily).
   - **Premium Tier:** Unlimited photo analyses (validated via active subscription status check in PostgreSQL).
+
+---
+
+## Future Refactorings & Features (Deferred)
+- **History Message Length Limits (Issue 16):** The risk of the `/history` output exceeding Telegram's 4096-character limit will be addressed during the global refactoring of the import/export features (e.g. when implementing Excel/CSV exports for doctors, or paginated message views). We must keep this limit in mind when designing the history presentation.

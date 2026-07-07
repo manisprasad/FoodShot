@@ -81,7 +81,7 @@
 - **Recommendation:** Verify `.env` is in `.gitignore`. Run `git log --all --full-history -- .env` to check if it was ever committed. If so, rotate all credentials and use `git filter-repo` to remove it from history.
 
 ## 16. History May Exceed Telegram Message Limit (Low)
-- [ ] **Issue:** `bot/handlers/history.py` concatenates up to 10 meal items into a single message. Telegram messages have a 4096 character limit.
+- [ ] **Issue:** `bot/handlers/history.py` concatenates up to 10 meal items into a single message. Telegram messages have a 4096 character limit. *(DEFERRED: To be implemented during the global import/export refactoring phase)*
 - **Risk:** With long dish names or many items, the message can exceed 4096 characters → `TelegramBadRequest` exception → unhandled crash (see #6).
 - **Recommendation:** Truncate the message or paginate results. Check `len(text) < 4096` before sending.
 
