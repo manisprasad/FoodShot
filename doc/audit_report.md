@@ -31,7 +31,7 @@
 - **Recommendation:** Explicitly configure connection pool parameters in `create_async_engine`, e.g., `pool_size=20`, `max_overflow=10`.
 
 ## 6. No Exception Handling in Any Handler (Critical)
-- [ ] **Issue:** All bot handlers (`photo.py`, `start.py`, `settings.py`, `history.py`) have zero `try/except` blocks around DB operations, Telegram API calls, or service calls.
+- [x] **Issue:** All bot handlers (`photo.py`, `start.py`, `settings.py`, `history.py`) have zero `try/except` blocks around DB operations, Telegram API calls, or service calls.
 - **Risk:** Any `SQLAlchemyError`, `TelegramAPIError`, or network exception propagates unhandled → FastAPI returns 500 → Telegram retries endlessly. The user receives no error message, just silence or spam from retries.
 - **Recommendation:** Register a global error handler via `dp.errors.register()` that catches all unhandled exceptions, logs them, and sends a user-friendly "Something went wrong, please try again" message. Additionally, wrap critical service calls in handlers with specific `try/except` blocks.
 
@@ -51,7 +51,7 @@
 - **Recommendation:** Validate input ranges at registration and settings update time: `ICR ∈ [1, 100]`, `ISF ∈ [0.1, 20]`, `target_bg ∈ [3.0, 10.0]`. Also catch `ValueError` from `calc.py` in the photo handler.
 
 ## 10. DB Middleware Has No Error/Rollback Handling (High)
-- [ ] **Issue:** `bot/middlewares.py` opens a DB session and passes it to the handler, but has no `try/except` and no explicit `rollback`.
+- [x] **Issue:** `bot/middlewares.py` opens a DB session and passes it to the handler, but has no `try/except` and no explicit `rollback`.
 - **Risk:** If a handler raises an exception mid-transaction, the session is closed by the context manager but uncommitted changes may be in an inconsistent state. Since `crud.py` calls `session.commit()` per operation, partial commits can occur — e.g., a meal log is committed but the user never sees the result because a subsequent Telegram call fails.
 - **Recommendation:** Wrap the handler call in `try/except`, call `session.rollback()` on error, and consider using a single commit-at-the-end pattern instead of per-operation commits.
 
