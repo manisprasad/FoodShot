@@ -12,7 +12,7 @@ async def get_user(session: AsyncSession, user_id: int) -> User | None:
 async def create_user(session: AsyncSession, **kwargs) -> User:
     user = User(**kwargs)
     session.add(user)
-    await session.commit()
+    await session.flush()
     await session.refresh(user)
     return user
 
@@ -22,7 +22,7 @@ async def update_user(session: AsyncSession, user_id: int, **kwargs) -> User | N
     if user:
         for key, value in kwargs.items():
             setattr(user, key, value)
-        await session.commit()
+        await session.flush()
         await session.refresh(user)
     return user
 
@@ -30,7 +30,7 @@ async def update_user(session: AsyncSession, user_id: int, **kwargs) -> User | N
 async def create_meal_log(session: AsyncSession, **kwargs) -> MealLog:
     meal = MealLog(**kwargs)
     session.add(meal)
-    await session.commit()
+    await session.flush()
     await session.refresh(meal)
     return meal
 
@@ -51,4 +51,4 @@ async def update_user_language(session: AsyncSession, user_id: int, language: st
     await session.execute(
         update(User).where(User.id == user_id).values(language=language)
     )
-    await session.commit()
+    await session.flush()
