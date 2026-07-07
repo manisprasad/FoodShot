@@ -6,22 +6,22 @@
 *Note: Previously resolved issues have been removed from this document.*
 
 ## 1. Webhook Blocking & Retries (Critical)
-- [ ] **Issue:** The Telegram webhook in `api/webhook.py` processes updates synchronously. 
+- [x] **Issue:** The Telegram webhook in `api/webhook.py` processes updates synchronously. 
 - **Risk:** If OpenAI or USDA APIs take longer than a few seconds, Telegram will time out and retry the webhook. This leads to duplicate processing of the same photo (spamming the user), hitting API rate limits, and exhausting FastAPI worker threads.
 - **Recommendation:** Process updates in the background. In `api/webhook.py`, use FastAPI's `BackgroundTasks` to run `dp.feed_update(bot, telegram_update)` asynchronously so the webhook can return `{"status": "ok"}` immediately.
 
 ## 2. Unhandled API Errors in USDA Client (High)
-- [ ] **Issue:** `services/nutrition.py` does not catch HTTP or network exceptions.
+- [x] **Issue:** `services/nutrition.py` does not catch HTTP or network exceptions.
 - **Risk:** If the USDA API returns a 502, 503, or 429 status code, `response.json()` or the request itself will throw an exception (e.g., `httpx.RequestError`). This unhandled exception crashes the webhook handler, leading to a 500 Internal Server Error, which again causes Telegram to retry endlessly.
 - **Recommendation:** Wrap the API call in a `try...except` block, use `response.raise_for_status()`, and gracefully return `None` or raise a custom exception that the bot can catch and notify the user about.
 
 ## 3. Missing Explicit Timeouts (Moderate)
-- [ ] **Issue:** `AsyncOpenAI` and `httpx.AsyncClient` do not have strict timeouts configured.
+- [x] **Issue:** `AsyncOpenAI` and `httpx.AsyncClient` do not have strict timeouts configured.
 - **Risk:** The default timeout for OpenAI is 10 minutes. If their API hangs, the bot connection hangs with it, locking up resources.
 - **Recommendation:** Set an explicit `timeout` parameter (e.g., 10-15 seconds) for both `httpx.AsyncClient()` and `AsyncOpenAI()`.
 
 ## 4. Misleading UX on AI Failure (Moderate)
-- [ ] **Issue:** In `services/vision.py`, any exception during OpenAI processing is caught and `None` is returned.
+- [x] **Issue:** In `services/vision.py`, any exception during OpenAI processing is caught and `None` is returned.
 - **Risk:** The handler interprets `None` as "Food not found" (`not-found`). If OpenAI is down or out of credits, the user receives an incorrect message ("Food not found") instead of a proper error message ("Service unavailable").
 - **Recommendation:** Distinguish between a successful API call where no food is detected, and a technical failure. Raise a specific exception for API failures and handle it in `photo.py` with a relevant error message to the user.
 
@@ -36,7 +36,7 @@
 - **Recommendation:** Register a global error handler via `dp.errors.register()` that catches all unhandled exceptions, logs them, and sends a user-friendly "Something went wrong, please try again" message. Additionally, wrap critical service calls in handlers with specific `try/except` blocks.
 
 ## 7. No Idempotency / Duplicate Protection (Critical)
-- [ ] **Issue:** There is no protection against processing the same Telegram `update_id` twice. Combined with webhook blocking (#1), Telegram retries cause duplicate processing.
+- [x] **Issue:** There is no protection against processing the same Telegram `update_id` twice. Combined with webhook blocking (#1), Telegram retries cause duplicate processing.
 - **Risk:** A single photo can trigger 2-3 identical OpenAI API calls (billed separately), 2-3 identical `meal_logs` saved to the database, and 2-3 duplicate result messages to the user.
 - **Recommendation:** Track processed `update_id` values in a Redis set with a short TTL (e.g., 5 minutes) and skip duplicates at the webhook level before calling `dp.feed_update()`.
 
@@ -56,7 +56,7 @@
 - **Recommendation:** Wrap the handler call in `try/except`, call `session.rollback()` on error, and consider using a single commit-at-the-end pattern instead of per-operation commits.
 
 ## 11. Redis Failure Crashes Nutrition Flow (Moderate)
-- [ ] **Issue:** `services/nutrition.py` calls `redis_client.get()` and `redis_client.setex()` with no exception handling. Redis is used as a cache.
+- [x] **Issue:** `services/nutrition.py` calls `redis_client.get()` and `redis_client.setex()` with no exception handling. Redis is used as a cache.
 - **Risk:** If Redis is temporarily down, `redis.ConnectionError` crashes the entire nutrition lookup, even though it should degrade gracefully to "no cache." This makes the bot fully dependent on Redis uptime for a feature that is purely a performance optimization.
 - **Recommendation:** Wrap cache reads/writes in `try/except redis.RedisError` and fall through to the USDA API call on cache failure.
 
