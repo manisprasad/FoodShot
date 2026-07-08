@@ -26,11 +26,19 @@ This document contains all external services, dashboards, and API keys required 
 * **Public Docs Repository:** [https://github.com/soroqn1/foodshot-docs](https://github.com/soroqn1/foodshot-docs)
   * *Purpose:* Public-facing repository intended for recruiters and future users. Contains the high-level `MVP.md`.
 
-## Fly.io Deployment
-* **Fly.io Dashboard:** [https://fly.io/apps/foodshot](https://fly.io/apps/foodshot)
-  * *Purpose:* Monitoring deployments, metrics, logs, and database scaling.
-* **Production Webhook URL:** [https://foodshot.fly.dev/webhook](https://foodshot.fly.dev/webhook)
-  * *Purpose:* The Telegram webhook target URL.
+## Infrastructure and Hosting (Free Tier — $0)
+
+### Render (Web Service + Polling)
+* **Render Dashboard:** [https://dashboard.render.com/](https://dashboard.render.com/)
+  * *Purpose:* Hosts the FoodShot bot as a web service (webhook mode) or background worker (polling mode). Free tier available.
+
+### Neon (PostgreSQL)
+* **Neon Dashboard:** [https://console.neon.tech/](https://console.neon.tech/)
+  * *Purpose:* Serverless PostgreSQL database. Provides the `DATABASE_URL` connection string. Free tier with autoscaling.
+
+### Upstash (Redis)
+* **Upstash Dashboard:** [https://console.upstash.com/](https://console.upstash.com/)
+  * *Purpose:* Serverless Redis for aiogram FSM state storage. Provides `REDIS_URL`. Free tier available.
 
 ## Telegram Bot
 * **Telegram Bot:** [@FoodShot_Bot](https://t.me/FoodShot_Bot)

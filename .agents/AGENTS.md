@@ -37,7 +37,7 @@ AI (GPT-4o) is ONLY used for food photo recognition (dish name, weight estimate,
 │   ├── nutrition.py            # USDA nutrition client
 │   └── calc.py                 # bolus calculation
 ├── locales/                    # i18n (EN, UK)
-├── doc/
+├── docs/
 │   ├── foodshot_architecture.svg
 │   └── tg_fries.png
 ├── docker-compose.yml
@@ -65,7 +65,7 @@ total      = carb_dose + correction
 
 ## Documentation
 - **Public MVP spec:** https://github.com/soroqn1/foodshot-docs/blob/main/MVP.md (Local path: `/Users/soroqn/me/private-code/foodshot-docs/MVP.md`). This repository is public, meant for recruiters and future users. It contains high-level business goals.
-- **Internal Technical MVP:** `doc/MVP.md` in this repository. It contains technical implementation details, DB schemas, etc. Do NOT overwrite the internal MVP with the public MVP.
+- **Internal Technical MVP:** `docs/MVP.md` in this repository. It contains technical implementation details, DB schemas, etc. Do NOT overwrite the internal MVP with the public MVP.
 - Architecture diagram: https://github.com/soroqn1/foodshot-docs/blob/main/foodshot_architecture.svg
 
 ## Working rules
@@ -89,13 +89,13 @@ total      = carb_dose + correction
 ## Action Planning & User Approval Rule
 1. **NO UNAPPROVED CHANGES:** Never execute code modifications, file creations, or commits without explicit user approval.
 2. **PROACTIVE PLANNING:** Do not constantly ask annoying questions like "should we do it?". Instead, proactively assume the required steps, explain them briefly to the user, and generate a detailed plan in a markdown file.
-3. **PLAN STORAGE:** All plans must be stored in the `doc/plans/` directory (which is ignored in git). Do not commit or push the plan files.
-4. **PLAN ORGANIZATION:** Organize plans by task folders (e.g., `doc/plans/01_setup/`, `doc/plans/02_feature/`).
+3. **PLAN STORAGE:** All plans must be stored in the `docs/plans/` directory (which is ignored in git). Do not commit or push the plan files.
+4. **PLAN ORGANIZATION:** Organize plans by task folders (e.g., `docs/plans/01_setup/`, `docs/plans/02_feature/`).
 5. **PLAN VERSIONING:** Inside the task folder, use a versioning naming convention starting with `[X.Y]_<description>.md`.
    - `X` represents the major task number (e.g., 1, 2).
    - `Y` represents the iteration/sub-task (e.g., 1, 2).
    - Example: `[1.1]_initial_plan.md`, `[1.2]_expanded_plan.md`. If it's a completely new task, start a new folder and a `[2.1]` plan.
-6. **PRE-FLIGHT CHECK:** Before creating a new plan, always search the `doc/plans/` directory for existing related plans.
+6. **PRE-FLIGHT CHECK:** Before creating a new plan, always search the `docs/plans/` directory for existing related plans.
    - If a similar plan exists, read it. Then, either edit it or expand it by creating the next version (e.g., `[1.2]`).
    - If no similar plan exists, start a new task folder and a new `[X.1]` plan.
 7. TASK COMPLETION & CLOSING: At the end of a task, after the user has tested everything, explicitly ask the user: "Is everything working as expected? Can we close this task?". Once the user confirms, update the relevant plan markdown file to mark the task as `DONE` (e.g., add `[x]` or `DONE` to the header). This prevents future AI sessions from re-reading and re-analyzing completed tasks, significantly saving tokens.

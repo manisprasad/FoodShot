@@ -35,7 +35,7 @@ We built FoodShot with modern, asynchronous, and scalable technologies:
 ## 🏗 Architecture
 The system operates strictly via webhooks for maximum performance and zero polling overhead. Telegram sends updates to our FastAPI endpoint, which securely validates them via a secret token and routes them to `aiogram` handlers.
 
-![FoodShot Architecture](./doc/foodshot_architecture.svg)
+![FoodShot Architecture](./docs/foodshot_architecture.svg)
 
 ## 🚀 Getting Started (Local Development)
 
