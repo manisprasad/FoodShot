@@ -249,3 +249,19 @@ async def test_process_settings_submenu():
         assert "Your Settings:" in callback.message.edit_text.call_args[0][0]
         state.clear.assert_called_once()
         callback.answer.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_process_how_to_use():
+    from bot.handlers.settings import process_how_to_use
+
+    callback = AsyncMock()
+    state = AsyncMock(spec=FSMContext)
+    i18n = I18n("en")
+
+    await process_how_to_use(callback, state, i18n)
+
+    callback.message.edit_text.assert_called_once()
+    assert "How to Use FoodShot:" in callback.message.edit_text.call_args[0][0]
+    state.clear.assert_called_once()
+    callback.answer.assert_called_once()

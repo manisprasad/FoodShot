@@ -17,6 +17,11 @@ def get_more_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
+            text=i18n.get("btn-how-to-use"), callback_data="how_to_use"
+        )
+    )
+    builder.row(
+        types.InlineKeyboardButton(
             text=i18n.get("btn-settings-submenu"), callback_data="settings_submenu"
         ),
         types.InlineKeyboardButton(
@@ -71,6 +76,24 @@ async def process_back_to_settings(
     await callback.message.edit_text(
         i18n.get("more-options-header"),
         reply_markup=get_more_keyboard(i18n),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "how_to_use")
+async def process_how_to_use(
+    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
+):
+    await state.clear()
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-back"), callback_data="back_to_settings"
+        )
+    )
+    await callback.message.edit_text(
+        i18n.get("how-to-use-text"),
+        reply_markup=builder.as_markup(),
     )
     await callback.answer()
 

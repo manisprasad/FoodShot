@@ -88,6 +88,8 @@ TEXTS = {
         "btn-more": "⚙️ More",
         "btn-settings-submenu": "⚙️ Settings",
         "more-options-header": "⚙️ *More Options:*\n\nExplore all available features of FoodShot.",
+        "btn-how-to-use": "💡 How to Use",
+        "how-to-use-text": "💡 *How to Use FoodShot:*\n\n📸 *Quick Log:* Just send a photo of your meal directly to the chat! No menus or commands needed — the AI will automatically identify the food and calculate macros/calories.\n\n⚙️ *More Features:* In this menu, you can set up Diabetes Mode (insulin calculations) or Export your data to Excel/Google Sheets.",
     },
     "uk": {
         "start-welcome": "👋 *Вітаю!* FoodShot — це ваш розумний щоденник харчування та трекер калорій з AI. Просто надішліть фото страви, щоб розпочати логування!\n\nВи можете налаштувати мову або увімкнути Режим діабету у Налаштуваннях.",
@@ -178,6 +180,8 @@ TEXTS = {
         "btn-more": "⚙️ Більше",
         "btn-settings-submenu": "⚙️ Налаштування",
         "more-options-header": "⚙️ *Додатково:*\n\nОзнайомтеся з усіма доступними функціями FoodShot.",
+        "btn-how-to-use": "💡 Як користуватися",
+        "how-to-use-text": "💡 *Як користуватися FoodShot:*\n\n📸 *Швидкий запис:* Просто надішліть фото своєї їжі прямо в чат! Без зайвих команд та кнопок — AI автоматично розпізнає страву та розрахує калорії й макроси.\n\n⚙️ *Додаткові функції:* У цьому меню ви можете налаштувати Режим діабету (для розрахунку інсуліну) або Експортувати свої дані в Excel чи Google Таблиці.",
     },
 }
 
