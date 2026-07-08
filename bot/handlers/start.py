@@ -3,6 +3,7 @@ from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 
 from bot.keyboards import main_menu
 from core.i18n import I18n
@@ -51,12 +52,13 @@ async def process_start_lang(
                 icr=None,
                 isf=None,
                 target_bg=None,
-                insulin_type=None,
                 language=lang,
                 diabetes_mode=False,
             )
-        except Exception:
-            pass
+        except Exception as e:
+            logger.exception(
+                "Failed to create user during start registration", exc_info=e
+            )
     else:
         if user.language != lang:
             await crud.update_user_language(session, user.id, lang)
@@ -75,3 +77,6 @@ async def process_start_lang(
         reply_markup=main_menu(i18n),
     )
     await callback.answer()
+
+
+Length: 2187

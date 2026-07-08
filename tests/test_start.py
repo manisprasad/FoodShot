@@ -62,7 +62,6 @@ async def test_process_start_lang_new_user():
             icr=None,
             isf=None,
             target_bg=None,
-            insulin_type=None,
             language="uk",
             diabetes_mode=False,
         )
