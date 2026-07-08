@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import language_menu, main_menu
 from bot.states import Settings as SettingsState
+from bot.states import Registration as DiabetesSetupState
 from core.i18n import I18n
 from db import crud
 
@@ -16,27 +17,16 @@ def get_settings_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
-            text=i18n.get("btn-edit-icr"), callback_data="edit:icr"
-        ),
-        types.InlineKeyboardButton(
-            text=i18n.get("btn-edit-isf"), callback_data="edit:isf"
-        ),
-    )
-    builder.row(
-        types.InlineKeyboardButton(
-            text=i18n.get("btn-edit-target_bg"), callback_data="edit:target_bg"
-        ),
-        types.InlineKeyboardButton(
-            text=i18n.get("btn-edit-insulin_type"), callback_data="edit:insulin_type"
-        ),
-    )
-    builder.row(
-        types.InlineKeyboardButton(
             text=i18n.get("btn-change-lang"), callback_data="change_lang"
         ),
         types.InlineKeyboardButton(
-            text=i18n.get("btn-security-zone"), callback_data="security_zone"
+            text=i18n.get("btn-diabetes-mode"), callback_data="diabetes_menu"
         ),
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-security-zone"), callback_data="security_zone"
+        )
     )
     return builder.as_markup()
 
@@ -53,10 +43,6 @@ async def cmd_settings(
         i18n.get(
             "settings-main",
             lang="English" if user.language == "en" else "Українська",
-            icr=user.icr,
-            isf=user.isf,
-            target=user.target_bg,
-            type=user.insulin_type,
         ),
         reply_markup=get_settings_keyboard(i18n),
     )
@@ -94,10 +80,6 @@ async def process_back_to_settings(
         i18n.get(
             "settings-main",
             lang="English" if user.language == "en" else "Українська",
-            icr=user.icr,
-            isf=user.isf,
-            target=user.target_bg,
-            type=user.insulin_type,
         ),
         reply_markup=get_settings_keyboard(i18n),
     )
@@ -146,6 +128,105 @@ async def process_delete_confirm(
         await cmd_settings(message, session, state, i18n)
 
 
+@router.callback_query(F.data == "diabetes_menu")
+async def process_diabetes_menu(
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    await state.clear()
+    user = await crud.get_user(session, callback.from_user.id)
+    builder = InlineKeyboardBuilder()
+
+    if not user.diabetes_mode:
+        text = i18n.get("diabetes-menu-disabled")
+        builder.row(
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-enable-configure"),
+                callback_data="configure_diabetes",
+            )
+        )
+    else:
+        text = i18n.get(
+            "diabetes-menu-enabled",
+            icr=user.icr,
+            isf=user.isf,
+            target=user.target_bg,
+            type=user.insulin_type,
+        )
+        builder.row(
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-edit-params"), callback_data="edit_diabetes_params"
+            ),
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-reconfigure-all"), callback_data="configure_diabetes"
+            ),
+        )
+        builder.row(
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-disable"), callback_data="disable_diabetes"
+            )
+        )
+
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-back"), callback_data="back_to_settings"
+        )
+    )
+
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=builder.as_markup(),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "disable_diabetes")
+async def process_disable_diabetes(
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    await crud.update_user(
+        session,
+        callback.from_user.id,
+        diabetes_mode=False,
+    )
+    await callback.answer(i18n.get("diabetes-disabled"))
+    await process_diabetes_menu(callback, session, state, i18n)
+
+
+@router.callback_query(F.data == "edit_diabetes_params")
+async def process_edit_diabetes_params(
+    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
+):
+    await state.clear()
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-edit-icr"), callback_data="edit:icr"
+        ),
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-edit-isf"), callback_data="edit:isf"
+        ),
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-edit-target_bg"), callback_data="edit:target_bg"
+        ),
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-edit-insulin_type"), callback_data="edit:insulin_type"
+        ),
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-back"), callback_data="diabetes_menu"
+        )
+    )
+
+    await callback.message.edit_text(
+        text=i18n.get("edit-params-menu"),
+        reply_markup=builder.as_markup(),
+    )
+    await callback.answer()
+
+
 @router.callback_query(F.data.startswith("edit:"))
 async def process_edit_field(
     callback: types.CallbackQuery, state: FSMContext, i18n: I18n
@@ -155,7 +236,18 @@ async def process_edit_field(
     await state.update_data(edit_field=field)
 
     prompt_key = f"prompt-edit-{field}"
-    await callback.message.answer(i18n.get(prompt_key))
+
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-cancel"), callback_data="edit_diabetes_params"
+        )
+    )
+
+    await callback.message.edit_text(
+        text=i18n.get(prompt_key),
+        reply_markup=builder.as_markup(),
+    )
     await callback.answer()
 
 
@@ -173,10 +265,98 @@ async def process_new_value(
         except ValueError:
             return await message.answer(i18n.get("error-number"))
 
+        if field == "icr" and not (1.0 <= value <= 100.0):
+            return await message.answer(i18n.get("error-range-icr"))
+        elif field == "isf" and not (0.1 <= value <= 20.0):
+            return await message.answer(i18n.get("error-range-isf"))
+        elif field == "target_bg" and not (3.0 <= value <= 12.0):
+            return await message.answer(i18n.get("error-range-target"))
+
     await crud.update_user(session, message.from_user.id, **{field: value})
     await state.clear()
 
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
     await message.answer(i18n.get("profile-updated"))
+    await cmd_settings(message, session, state, i18n)
+
+
+@router.callback_query(F.data == "configure_diabetes")
+async def process_configure_diabetes(
+    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
+):
+    await state.set_state(DiabetesSetupState.waiting_for_icr)
+    await callback.message.edit_text(
+        text=i18n.get("start-welcome"),
+        reply_markup=None,
+    )
+    await callback.answer()
+
+
+@router.message(DiabetesSetupState.waiting_for_icr, F.text)
+async def process_setup_icr(message: types.Message, state: FSMContext, i18n: I18n):
+    try:
+        icr = float(message.text.replace(",", "."))
+        if not (1.0 <= icr <= 100.0):
+            return await message.answer(i18n.get("error-range-icr"))
+        await state.update_data(icr=icr)
+        await state.set_state(DiabetesSetupState.waiting_for_isf)
+        await message.answer(i18n.get("enter-isf"))
+    except ValueError:
+        await message.answer(i18n.get("error-number"))
+
+
+@router.message(DiabetesSetupState.waiting_for_isf, F.text)
+async def process_setup_isf(message: types.Message, state: FSMContext, i18n: I18n):
+    try:
+        isf = float(message.text.replace(",", "."))
+        if not (0.1 <= isf <= 20.0):
+            return await message.answer(i18n.get("error-range-isf"))
+        await state.update_data(isf=isf)
+        await state.set_state(DiabetesSetupState.waiting_for_target_bg)
+        await message.answer(i18n.get("enter-target"))
+    except ValueError:
+        await message.answer(i18n.get("error-number"))
+
+
+@router.message(DiabetesSetupState.waiting_for_target_bg, F.text)
+async def process_setup_target_bg(
+    message: types.Message, state: FSMContext, i18n: I18n
+):
+    try:
+        target_bg = float(message.text.replace(",", "."))
+        if not (3.0 <= target_bg <= 12.0):
+            return await message.answer(i18n.get("error-range-target"))
+        await state.update_data(target_bg=target_bg)
+        await state.set_state(DiabetesSetupState.waiting_for_insulin_type)
+        await message.answer(i18n.get("enter-insulin"))
+    except ValueError:
+        await message.answer(i18n.get("error-number"))
+
+
+@router.message(DiabetesSetupState.waiting_for_insulin_type, F.text)
+async def process_setup_insulin_type(
+    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    data = await state.get_data()
+
+    await crud.update_user(
+        session=session,
+        id=message.from_user.id,
+        icr=data["icr"],
+        isf=data["isf"],
+        target_bg=data["target_bg"],
+        insulin_type=message.text,
+        diabetes_mode=True,
+    )
+    await state.clear()
+
+    await message.answer(
+        text=i18n.get("diabetes-enabled"), reply_markup=main_menu(i18n)
+    )
     await cmd_settings(message, session, state, i18n)
 
 
@@ -202,11 +382,9 @@ async def process_set_lang(
         await crud.update_user_language(session, user.id, new_lang)
         i18n.lang = new_lang
 
-        # Update Reply Keyboard as well by sending a confirmation message
         await callback.message.answer(
             i18n.get("lang-changed"), reply_markup=main_menu(i18n)
         )
 
-    # Go back to settings or just delete selection menu
     await callback.message.delete()
     await callback.answer()
