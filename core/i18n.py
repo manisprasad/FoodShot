@@ -1,6 +1,6 @@
 TEXTS = {
     "en": {
-        "start-welcome": "👋 *Welcome!* FoodShot is your AI-powered smart food diary and calorie tracker. Simply send a photo of your meal to start logging!\n\nYou can configure languages or enable Diabetes Mode in Settings.",
+        "start-welcome": "👋 *Welcome!* FoodShot is your smart food diary and calorie tracker. Simply send a photo of your meal to start logging!\n\nYou can configure languages or enable Diabetes Mode in Settings.",
         "enter-icr": "👋 *Let's set up Diabetes Mode.*\n\nEnter your *ICR* (carbs per 1U insulin):",
         "enter-isf": "✅ Got it. Now enter your *ISF* (BG drop per 1U insulin):",
         "enter-target": "🎯 What is your *target* blood glucose? (mmol/L):",
@@ -89,10 +89,10 @@ TEXTS = {
         "btn-settings-submenu": "⚙️ Settings",
         "more-options-header": "⚙️ *More Options:*\n\nExplore all available features of FoodShot.",
         "btn-how-to-use": "💡 How to Use",
-        "how-to-use-text": "💡 *How to Use FoodShot:*\n\n📸 *Quick Log:* Just send a photo of your meal directly to the chat! No menus or commands needed — the AI will automatically identify the food and calculate macros/calories.\n\n⚙️ *More Features:* In this menu, you can set up Diabetes Mode (insulin calculations) or Export your data to Excel/Google Sheets.",
+        "how-to-use-text": "💡 *How to Use FoodShot:*\n\n📸 *Quick Log:* Just send a photo of your meal directly to the chat! No menus or commands needed — the bot will automatically identify the food and calculate macros/calories.\n\n⚙️ *More Features:* In this menu, you can set up Diabetes Mode (insulin calculations) or Export your data to Excel/Google Sheets.",
     },
     "uk": {
-        "start-welcome": "👋 *Вітаю!* FoodShot — це ваш розумний щоденник харчування та трекер калорій з AI. Просто надішліть фото страви, щоб розпочати логування!\n\nВи можете налаштувати мову або увімкнути Режим діабету у Налаштуваннях.",
+        "start-welcome": "👋 *Вітаю!* FoodShot — це ваш розумний щоденник харчування та трекер калорій. Просто надішліть фото страви, щоб розпочати логування!\n\nВи можете налаштувати мову або увімкнути Режим діабету у Налаштуваннях.",
         "enter-icr": "👋 *Давайте налаштуємо режим діабету.*\n\nВведіть ваш *ICR* (кількість вуглеводів на 1 од. інсуліну):",
         "enter-isf": "✅ Зрозумів. Тепер введіть ваш *ISF* (на скільки ммоль/л знижує цукор 1 од. інсуліну):",
         "enter-target": "🎯 Який ваш *цільовий* рівень цукру? (ммоль/л):",
@@ -181,7 +181,7 @@ TEXTS = {
         "btn-settings-submenu": "⚙️ Налаштування",
         "more-options-header": "⚙️ *Додатково:*\n\nОзнайомтеся з усіма доступними функціями FoodShot.",
         "btn-how-to-use": "💡 Як користуватися",
-        "how-to-use-text": "💡 *Як користуватися FoodShot:*\n\n📸 *Швидкий запис:* Просто надішліть фото своєї їжі прямо в чат! Без зайвих команд та кнопок — AI автоматично розпізнає страву та розрахує калорії й макроси.\n\n⚙️ *Додаткові функції:* У цьому меню ви можете налаштувати Режим діабету (для розрахунку інсуліну) або Експортувати свої дані в Excel чи Google Таблиці.",
+        "how-to-use-text": "💡 *Як користуватися FoodShot:*\n\n📸 *Швидкий запис:* Просто надішліть фото своєї їжі прямо в чат! Без зайвих команд та кнопок — бот автоматично розпізнає страву та розрахує калорії й макроси.\n\n⚙️ *Додаткові функції:* У цьому меню ви можете налаштувати Режим діабету (для розрахунку інсуліну) або Експортувати свої дані в Excel чи Google Таблиці.",
     },
 }
 
