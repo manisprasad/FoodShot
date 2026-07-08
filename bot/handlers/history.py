@@ -46,7 +46,7 @@ def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
 
 
 @router.message(Command("history"))
-@router.message(F.text.in_({"📝 Manage Last 10", "📝 Керувати останніми 10"}))
+@router.message(F.text.in_({"📝 Last 10 Meals", "📝 Останні 10 прийомів"}))
 async def cmd_history(
     message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
