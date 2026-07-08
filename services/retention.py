@@ -16,7 +16,7 @@ async def perform_retention_checks(bot: Bot):
     today_str = today.strftime("%Y-%m-%d")
 
     last_checked = await redis_client.get(REDIS_RETENTION_LOCK_KEY)
-    if last_checked and last_checked.decode("utf-8") == today_str:
+    if last_checked and last_checked == today_str:
         logger.debug("Retention check already performed today (%s)", today_str)
         return
 
