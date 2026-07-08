@@ -3,7 +3,7 @@ import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 from bot.handlers.settings import (
-    process_security_zone,
+    cmd_danger,
     process_back_to_settings,
     process_delete_account,
     process_delete_confirm,
@@ -13,17 +13,17 @@ from core.i18n import I18n
 
 
 @pytest.mark.asyncio
-async def test_process_security_zone():
-    callback = AsyncMock()
-    callback.from_user.id = 12345
+async def test_cmd_danger():
+    message = AsyncMock()
+    message.from_user.id = 12345
     state = AsyncMock(spec=FSMContext)
     i18n = I18n("en")
 
-    await process_security_zone(callback, state, i18n)
+    await cmd_danger(message, state, i18n)
 
-    callback.message.edit_text.assert_called_once()
-    assert callback.message.edit_text.call_args[0][0] == i18n.get("security-zone-main")
-    callback.answer.assert_called_once()
+    state.clear.assert_called_once()
+    message.answer.assert_called_once()
+    assert message.answer.call_args[0][0] == i18n.get("security-zone-main")
 
 
 @pytest.mark.asyncio

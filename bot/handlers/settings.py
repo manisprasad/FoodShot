@@ -23,11 +23,6 @@ def get_settings_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
             text=i18n.get("btn-diabetes-mode"), callback_data="diabetes_menu"
         ),
     )
-    builder.row(
-        types.InlineKeyboardButton(
-            text=i18n.get("btn-security-zone"), callback_data="security_zone"
-        )
-    )
     return builder.as_markup()
 
 
@@ -48,10 +43,9 @@ async def cmd_settings(
     )
 
 
-@router.callback_query(F.data == "security_zone")
-async def process_security_zone(
-    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
-):
+@router.message(Command("danger"))
+async def cmd_danger(message: types.Message, state: FSMContext, i18n: I18n):
+    await state.clear()
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
@@ -63,11 +57,10 @@ async def process_security_zone(
             text=i18n.get("btn-back"), callback_data="back_to_settings"
         )
     )
-    await callback.message.edit_text(
+    await message.answer(
         i18n.get("security-zone-main"),
         reply_markup=builder.as_markup(),
     )
-    await callback.answer()
 
 
 @router.callback_query(F.data == "back_to_settings")
