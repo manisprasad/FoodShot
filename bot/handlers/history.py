@@ -17,6 +17,7 @@ def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
 
     text = i18n.get("history-header") + "\n"
 
+    kcal_label = i18n.get("label-kcal")
     carbs_label = i18n.get("label-carbs")
     unit_g = i18n.get("unit-grams")
 
@@ -29,12 +30,12 @@ def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
             unit_u = i18n.get("unit-insulin")
             item_text = (
                 f"{idx}. 🗓 {date_str} | *{meal.dish_name}*\n"
-                f"   {carbs_label}: `{round(meal.carbs_g, 1)}{unit_g}` | {dose_label}: `{meal.bolus_dose}{unit_u}`"
+                f"   {kcal_label}: `{int(meal.kcal)}` | {carbs_label}: `{round(meal.carbs_g, 1)}{unit_g}` | {dose_label}: `{meal.bolus_dose}{unit_u}`"
             )
         else:
             item_text = (
                 f"{idx}. 🗓 {date_str} | *{meal.dish_name}*\n"
-                f"   {carbs_label}: `{round(meal.carbs_g, 1)}{unit_g}`"
+                f"   {kcal_label}: `{int(meal.kcal)}` | {carbs_label}: `{round(meal.carbs_g, 1)}{unit_g}`"
             )
 
         text += item_text + "\n\n"
