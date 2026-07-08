@@ -28,7 +28,7 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
 
     try:
         response = await client.beta.chat.completions.parse(
-            model="gpt-4o-mini",
+            model="gpt-4o",
             messages=[
                 {
                     "role": "user",
