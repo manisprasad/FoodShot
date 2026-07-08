@@ -23,6 +23,11 @@ def get_settings_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
             text=i18n.get("btn-diabetes-mode"), callback_data="diabetes_menu"
         ),
     )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-export"), callback_data="export_menu"
+        )
+    )
     return builder.as_markup()
 
 
