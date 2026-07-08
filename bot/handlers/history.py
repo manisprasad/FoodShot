@@ -17,19 +17,24 @@ def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
 
     text = i18n.get("history-header") + "\n"
 
+    carbs_label = i18n.get("label-carbs")
+    unit_g = i18n.get("unit-grams")
+
     for idx, meal in enumerate(meals, 1):
         date_str = meal.created_at.strftime("%d.%m %H:%M")
 
         # Format meal item with or without bolus dose depending on mode
         if meal.bolus_dose is not None:
+            dose_label = i18n.get("label-dose")
+            unit_u = i18n.get("unit-insulin")
             item_text = (
                 f"{idx}. 🗓 {date_str} | *{meal.dish_name}*\n"
-                f"   Carbs: `{round(meal.carbs_g, 1)}g` | Dose: `{meal.bolus_dose}U`"
+                f"   {carbs_label}: `{round(meal.carbs_g, 1)}{unit_g}` | {dose_label}: `{meal.bolus_dose}{unit_u}`"
             )
         else:
             item_text = (
                 f"{idx}. 🗓 {date_str} | *{meal.dish_name}*\n"
-                f"   Carbs: `{round(meal.carbs_g, 1)}g`"
+                f"   {carbs_label}: `{round(meal.carbs_g, 1)}{unit_g}`"
             )
 
         text += item_text + "\n\n"
