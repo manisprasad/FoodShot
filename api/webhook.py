@@ -7,7 +7,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
 
 from sqlalchemy import text
-from bot.handlers import common, history, photo, settings, start
+from bot.handlers import common, history, photo, settings, start, export
 from bot.i18n_middleware import SimpleI18nMiddleware
 from bot.middlewares import DbSessionMiddleware
 from core.config import config
@@ -15,6 +15,7 @@ from core.redis_client import redis_client
 from db.database import SessionLocal
 from core.logger import setup_logging
 from loguru import logger
+from services.retention import run_retention_scheduler
 
 setup_logging()
 
@@ -30,6 +31,7 @@ dp.include_router(history.router)
 dp.include_router(settings.router)
 dp.include_router(start.router)
 dp.include_router(photo.router)
+dp.include_router(export.router)
 
 
 @asynccontextmanager
@@ -38,7 +40,13 @@ async def lifespan(app: FastAPI):
     await bot.set_webhook(
         url=config.WEBHOOK_URL, secret_token=config.WEBHOOK_SECRET_TOKEN
     )
+    scheduler_task = asyncio.create_task(run_retention_scheduler(bot))
     yield
+    scheduler_task.cancel()
+    try:
+        await scheduler_task
+    except asyncio.CancelledError:
+        pass
     await bot.delete_webhook()
 
 

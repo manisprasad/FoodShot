@@ -12,9 +12,10 @@ from loguru import logger
 router = Router()
 
 
-def _ask_bg_text(i18n: I18n, data: dict) -> str:
+def _ask_bg_text(i18n: I18n, data: dict, diabetes_mode: bool) -> str:
+    key = "ask-bg" if diabetes_mode else "ask-weight"
     return i18n.get(
-        "ask-bg",
+        key,
         dish=data["dish_name"],
         weight=data["weight_g"],
         carbs=round(data["carbs_per_g"] * data["weight_g"], 1),
@@ -31,6 +32,7 @@ async def handle_photo(
     state: FSMContext,
     i18n: I18n,
 ):
+    await state.clear()
     user = await crud.get_user(session, message.from_user.id)
     if not user:
         return await message.answer("Please /start registration first.")
@@ -68,10 +70,14 @@ async def handle_photo(
         logger.error(f"Nutrition API error: {e}")
         return await status_msg.edit_text(i18n.get("service-unavailable"))
 
-    history = await crud.get_user_history(session, user.id, limit=1)
-    last_bg = (
-        history[0].current_bg if history and history[0].current_bg is not None else None
-    )
+    last_bg = None
+    if user.diabetes_mode:
+        history = await crud.get_user_history(session, user.id, limit=1)
+        last_bg = (
+            history[0].current_bg
+            if history and history[0].current_bg is not None
+            else None
+        )
 
     state_data = {
         "dish_name": dish_display,
@@ -89,7 +95,7 @@ async def handle_photo(
     await state.set_state(FoodAnalysis.waiting_for_bg)
 
     await status_msg.edit_text(
-        _ask_bg_text(i18n, state_data),
+        _ask_bg_text(i18n, state_data, user.diabetes_mode),
         reply_markup=weight_adjust_keyboard(weight_g, i18n, last_bg),
     )
 
@@ -98,7 +104,7 @@ async def _finish_analysis(
     answer_func, user, data, current_bg_text, session, state, i18n
 ):
     current_bg = None
-    if current_bg_text != "/skip":
+    if user.diabetes_mode and current_bg_text != "/skip":
         try:
             current_bg = float(current_bg_text.replace(",", "."))
         except ValueError:
@@ -108,13 +114,17 @@ async def _finish_analysis(
     carbs = data["carbs_per_g"] * weight_g
     kcal = int(data["kcal_per_g"] * weight_g)
 
-    bolus = calc.calculate_bolus(
-        carbs=carbs,
-        icr=user.icr,
-        isf=user.isf,
-        target_bg=user.target_bg,
-        current_bg=current_bg,
-    )
+    if user.diabetes_mode:
+        bolus = calc.calculate_bolus(
+            carbs=carbs,
+            icr=user.icr,
+            isf=user.isf,
+            target_bg=user.target_bg,
+            current_bg=current_bg,
+        )
+        bolus_dose = bolus["total_dose"]
+    else:
+        bolus_dose = None
 
     await crud.create_meal_log(
         session=session,
@@ -125,32 +135,45 @@ async def _finish_analysis(
         kcal=kcal,
         protein_g=data["protein_per_g"] * weight_g,
         fat_g=data["fat_per_g"] * weight_g,
-        bolus_dose=bolus["total_dose"],
+        bolus_dose=bolus_dose,
         current_bg=current_bg,
         photo_file_id=data["photo_id"],
     )
 
     await state.clear()
-    await answer_func(
-        text=i18n.get(
-            "result-bolus",
-            total=bolus["total_dose"],
-            type=user.insulin_type,
-            carb_dose=bolus["carb_dose"],
-            correction=bolus["correction_dose"],
-            dish=data["dish_name"],
-            carbs=round(carbs, 1),
-            kcal=kcal,
-            icr=user.icr,
-            isf=user.isf,
-            target=user.target_bg,
+
+    if user.diabetes_mode:
+        await answer_func(
+            text=i18n.get(
+                "result-bolus",
+                total=bolus["total_dose"],
+                carb_dose=bolus["carb_dose"],
+                correction=bolus["correction_dose"],
+                dish=data["dish_name"],
+                carbs=round(carbs, 1),
+                kcal=kcal,
+                icr=user.icr,
+                isf=user.isf,
+                target=user.target_bg,
+            )
         )
-    )
+    else:
+        await answer_func(
+            text=i18n.get(
+                "result-food-only",
+                dish=data["dish_name"],
+                weight=int(weight_g),
+                carbs=round(carbs, 1),
+                kcal=kcal,
+                protein=round(data["protein_per_g"] * weight_g, 1),
+                fat=round(data["fat_per_g"] * weight_g, 1),
+            )
+        )
 
 
 @router.callback_query(FoodAnalysis.waiting_for_bg, F.data.startswith("weight:"))
 async def process_weight_adjust(
-    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
     delta = int(callback.data.split(":")[1])
     data = await state.get_data()
@@ -159,8 +182,10 @@ async def process_weight_adjust(
     await state.update_data(weight_g=new_weight)
     data["weight_g"] = new_weight
 
+    user = await crud.get_user(session, callback.from_user.id)
+
     await callback.message.edit_text(
-        _ask_bg_text(i18n, data),
+        _ask_bg_text(i18n, data, user.diabetes_mode),
         reply_markup=weight_adjust_keyboard(new_weight, i18n, data.get("last_bg")),
     )
     await callback.answer()

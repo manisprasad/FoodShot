@@ -1,10 +1,11 @@
-from aiogram import F, Router, types
+from aiogram import Router, types, F
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
+from loguru import logger
 
 from bot.keyboards import main_menu
-from bot.states import Registration
 from core.i18n import I18n
 from db import crud
 
@@ -15,63 +16,67 @@ router = Router()
 async def cmd_start(
     message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
+    await state.clear()
     user = await crud.get_user(session, message.from_user.id)
     if user:
         return await message.answer(
-            i18n.get("already-reg"), reply_markup=main_menu(i18n)
+            i18n.get("how-to-use-text"), reply_markup=main_menu(i18n)
         )
 
-    await state.set_state(Registration.waiting_for_icr)
-    await message.answer(i18n.get("start-welcome"))
-
-
-@router.message(Registration.waiting_for_icr, F.text)
-async def process_icr(message: types.Message, state: FSMContext, i18n: I18n):
-    try:
-        icr = float(message.text.replace(",", "."))
-        await state.update_data(icr=icr)
-        await state.set_state(Registration.waiting_for_isf)
-        await message.answer(i18n.get("enter-isf"))
-    except ValueError:
-        await message.answer(i18n.get("error-number"))
-
-
-@router.message(Registration.waiting_for_isf, F.text)
-async def process_isf(message: types.Message, state: FSMContext, i18n: I18n):
-    try:
-        isf = float(message.text.replace(",", "."))
-        await state.update_data(isf=isf)
-        await state.set_state(Registration.waiting_for_target_bg)
-        await message.answer(i18n.get("enter-target"))
-    except ValueError:
-        await message.answer(i18n.get("error-number"))
-
-
-@router.message(Registration.waiting_for_target_bg, F.text)
-async def process_target_bg(message: types.Message, state: FSMContext, i18n: I18n):
-    try:
-        target_bg = float(message.text.replace(",", "."))
-        await state.update_data(target_bg=target_bg)
-        await state.set_state(Registration.waiting_for_insulin_type)
-        await message.answer(i18n.get("enter-insulin"))
-    except ValueError:
-        await message.answer(i18n.get("error-number"))
-
-
-@router.message(Registration.waiting_for_insulin_type, F.text)
-async def process_insulin_type(
-    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
-):
-    data = await state.get_data()
-    await crud.create_user(
-        session=session,
-        id=message.from_user.id,
-        username=message.from_user.username,
-        icr=data["icr"],
-        isf=data["isf"],
-        target_bg=data["target_bg"],
-        insulin_type=message.text,
-        language=i18n.lang,
+    # Prompt for language selection on first start
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(text="🇬🇧 English", callback_data="start_lang:en"),
+        types.InlineKeyboardButton(text="🇺🇦 Українська", callback_data="start_lang:uk"),
     )
-    await state.clear()
-    await message.answer(i18n.get("reg-complete"), reply_markup=main_menu(i18n))
+    await message.answer(
+        "🌍 Select your language / Оберіть мову:",
+        reply_markup=builder.as_markup(),
+    )
+
+
+@router.callback_query(F.data.startswith("start_lang:"))
+async def process_start_lang(
+    callback: types.CallbackQuery, session: AsyncSession, i18n: I18n
+):
+    lang = callback.data.split(":")[1]
+
+    # Register user in DB safely checking if they already exist to handle double-clicks
+    user = await crud.get_user(session, callback.from_user.id)
+    if not user:
+        try:
+            await crud.create_user(
+                session=session,
+                id=callback.from_user.id,
+                username=callback.from_user.username,
+                icr=None,
+                isf=None,
+                target_bg=None,
+                language=lang,
+                diabetes_mode=False,
+            )
+        except Exception as e:
+            logger.exception(
+                "Failed to create user during start registration", exc_info=e
+            )
+    else:
+        if user.language != lang:
+            await crud.update_user_language(session, user.id, lang)
+
+    i18n.lang = lang
+
+    # Clean up selection message
+    try:
+        await callback.message.delete()
+    except Exception:
+        pass
+
+    # Send welcoming guide with the main menu reply keyboard
+    await callback.message.answer(
+        i18n.get("how-to-use-text"),
+        reply_markup=main_menu(i18n),
+    )
+    await callback.answer()
+
+
+Length: 2187

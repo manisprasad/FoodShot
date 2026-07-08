@@ -55,10 +55,13 @@ correction = (current_bg - target_bg) / isf   # only if current > target
 total      = carb_dose + correction
 
 ## MVP roadmap (not yet implemented)
-- Diary with pattern detection (glucose spikes after specific meals)
-- Data export to CSV/Excel for doctors
+- Daily Progress & Goals Dashboard (`/today` or `/stats` with Calorie/Macro targets)
+- Multi-component Meal splitting / Plate Splitter (structured sub-ingredients estimation)
+- Data export to Excel/CSV for doctors/nutritionists (premium feature)
+- AI Nutrition Coach & Weekly Sunday digests (pattern detection, weekly tips)
+- Water intake tracker (`/water` inline tool)
 - Freemium: 2-3 free analyses/day, ~$2-3/month premium
-- Out of scope for MVP: CGM integrations (Dexcom, Libre), complex multi-component meal splitting
+- Out of scope for MVP: CGM integrations (Dexcom, Libre)
 
 ## Documentation
 - **Public MVP spec:** https://github.com/soroqn1/foodshot-docs/blob/main/MVP.md (Local path: `/Users/soroqn/me/private-code/foodshot-docs/MVP.md`). This repository is public, meant for recruiters and future users. It contains high-level business goals.

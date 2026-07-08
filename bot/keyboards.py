@@ -36,10 +36,10 @@ def weight_adjust_keyboard(
 
 def main_menu(i18n: I18n) -> ReplyKeyboardMarkup:
     builder = ReplyKeyboardBuilder()
-    history_text = "📜 Історія" if i18n.lang == "uk" else "📜 History"
-    settings_text = "⚙️ Налаштування" if i18n.lang == "uk" else "⚙️ Settings"
+    history_text = i18n.get("btn-history")
+    more_text = i18n.get("btn-more")
 
-    builder.row(KeyboardButton(text=history_text), KeyboardButton(text=settings_text))
+    builder.row(KeyboardButton(text=history_text), KeyboardButton(text=more_text))
     return builder.as_markup(resize_keyboard=True)
 
 

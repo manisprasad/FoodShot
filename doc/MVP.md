@@ -1,6 +1,6 @@
 # FoodShot — MVP Specification
 
-> Telegram bot for people with diabetes: food photo → calorie count + insulin dose recommendation.
+> Telegram bot for general food tracking, calorie/macro logging, and nutrition diary, with an optional Diabetes Mode for insulin dose suggestions.
 
 ---
 
@@ -29,16 +29,14 @@ User sends food photo
 
 ### 1. Onboarding (`/start`)
 
-| Field | Description | Example |
-|---|---|---|
-| `icr` | Insulin-to-carb ratio (g carbs per 1U insulin) | `10` |
-| `isf` | Insulin sensitivity factor (mmol/L drop per 1U) | `2.5` |
-| `target_bg` | Target blood glucose (mmol/L) | `5.5` |
-| `insulin_type` | Rapid-acting brand name | `NovoRapid` |
+On first start, the bot guides the user through a simplified onboarding flow to configure:
+- Language preference (English or Ukrainian)
+- Optional daily calorie target (can be skipped)
 
-- Bot guides the user step-by-step via FSM (aiogram states).
-- Profile saved to PostgreSQL `users` table.
-- User can edit profile anytime with `/settings`.
+No medical or diabetes-related parameters (like ICR, ISF, or target blood glucose) are requested during onboarding.
+
+- Profile is saved to the PostgreSQL `users` table.
+- User can modify settings or enable Diabetes Mode anytime with `/settings`.
 
 ---
 
@@ -69,7 +67,9 @@ User sends food photo
 
 ---
 
-### 4. Insulin Dose Calculation
+### 4. Optional Insulin Dose Calculation (Diabetes Mode only)
+
+If the user enables **Diabetes Mode** in `/settings`, the bot will calculate and suggest insulin bolus doses.
 
 #### Bolus formula
 
@@ -81,10 +81,10 @@ total_dose  = carb_dose + correction
 
 #### Input from user (optional)
 
-- Bot can ask: *"What is your current blood glucose? (skip with /skip)"*
+- After the nutrition lookup, the bot asks: *"What is your current blood glucose? (skip with /skip)"*
 - If skipped → correction dose = 0, only carb bolus is calculated.
 
-#### Output card sent to user
+#### Output card sent to user (with Diabetes Mode active)
 
 ```
 🍝 Pasta Bolognese (~250g)
@@ -100,6 +100,8 @@ Fat:      12 g
 
 ⚠️ This is an estimate. Always verify with your doctor.
 ```
+
+If Diabetes Mode is disabled (default), the output card only displays the food nutrition details without any insulin dose suggestions or prompts for blood glucose.
 
 ---
 
@@ -126,8 +128,8 @@ meal_logs (
 
 | Command | Description |
 |---|---|
-| `/start` | Onboarding, create profile |
-| `/settings` | Edit ICR / ISF / target BG |
+| `/start` | Onboarding, choose language, and set optional calorie target |
+| `/settings` | Edit settings: Language, Calorie Target, Diabetes Mode, and Medical Parameters (ICR / ISF / target BG) if Diabetes Mode is enabled |
 | `/history` | Last 10 meal logs |
 | `/help` | Short usage guide |
 
@@ -183,27 +185,30 @@ foodshot/
 
 ```sql
 CREATE TABLE users (
-  id          BIGINT PRIMARY KEY,   -- Telegram user_id
-  username    TEXT,
-  icr         FLOAT NOT NULL,       -- g carbs / 1U
-  isf         FLOAT NOT NULL,       -- mmol/L drop / 1U
-  target_bg   FLOAT NOT NULL,       -- mmol/L
-  insulin_type TEXT,
-  created_at  TIMESTAMP DEFAULT NOW()
+  id                   BIGINT PRIMARY KEY,   -- Telegram user_id
+  username             TEXT,
+  icr                  FLOAT,                -- g carbs / 1U (nullable)
+  isf                  FLOAT,                -- mmol/L drop / 1U (nullable)
+  target_bg            FLOAT,                -- mmol/L (nullable)
+  insulin_type         TEXT,
+  language             TEXT DEFAULT 'en',
+  diabetes_mode        BOOLEAN DEFAULT FALSE,-- Toggle for advanced diabetes mode
+  daily_calorie_target INTEGER,              -- Optional daily calorie target
+  created_at           TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE meal_logs (
-  id           SERIAL PRIMARY KEY,
-  user_id      BIGINT REFERENCES users(id),
-  created_at   TIMESTAMP DEFAULT NOW(),
-  dish_name    TEXT,
-  portion_g    FLOAT,
-  carbs_g      FLOAT,
-  kcal         FLOAT,
-  protein_g    FLOAT,
-  fat_g        FLOAT,
-  bolus_dose   FLOAT,
-  current_bg   FLOAT,              -- nullable
+  id            SERIAL PRIMARY KEY,
+  user_id       BIGINT REFERENCES users(id),
+  created_at    TIMESTAMP DEFAULT NOW(),
+  dish_name     TEXT,
+  portion_g     FLOAT,
+  carbs_g       FLOAT,
+  kcal          FLOAT,
+  protein_g     FLOAT,
+  fat_g         FLOAT,
+  bolus_dose    FLOAT,
+  current_bg    FLOAT,              -- nullable
   photo_file_id TEXT
 );
 ```

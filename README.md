@@ -1,21 +1,23 @@
 <div align="center">
   <h1>📸 FoodShot</h1>
-  <p><b>Your AI-powered smart diary for food, insulin, and blood glucose tracking.</b></p>
-  <p><i>Snap a photo. Get carbs. Calculate insulin. Find patterns.</i></p>
+  <p><b>Your AI-powered smart food diary and calorie/macro tracker.</b></p>
+  <p><i>Snap a photo. Log calories. Track nutrients. Optional diabetes logging.</i></p>
 </div>
 
 ---
 
 ## 🎯 The Problem We Solve
-Living with diabetes means making dozens of mathematical decisions every day based on food weight, carbs, current blood glucose, and personal insulin factors. 
+Keeping track of daily meals, calories, and macros can be time-consuming and tedious.
 
-**FoodShot** simplifies this routine. Built entirely inside Telegram (where you already spend your time), it allows users to simply snap a photo of their meal. The bot estimates the dish and its weight, fetches precise nutritional data from official US databases (USDA), and optionally calculates the required insulin bolus based on transparent medical formulas.
+**FoodShot** makes food logging effortless. Built entirely inside Telegram, it allows you to simply snap a photo of your meal. The bot identifies the dish, estimates the portion weight using AI, fetches precise nutritional data (carbs, protein, fat, calories) from official databases (USDA), and logs it to your history.
+
+For users managing diabetes, FoodShot features an optional **Diabetes Mode** that tracks blood glucose, ICR/ISF parameters, and estimates suggested insulin boluses using standard transparent medical formulas.
 
 ## ✨ Core Philosophy
-- **Diary & Patterns First:** The main goal is to log your meals, glucose, and insulin to find repeating patterns over time (e.g., "Why does my glucose always spike after this specific breakfast?").
-- **AI as a Simple Assistant:** GPT-4o Vision is **strictly** used to recognize what's on your plate. It does **not** manage your diary or make medical calculations. 
-- **Doctor-Friendly Exports:** Effortlessly export your history and patterns into CSV/Excel for your endocrinologist.
-- **Transparent Math:** All insulin calculations use hardcoded, standard medical formulas based on your personal ICR (Insulin-to-Carb Ratio) and ISF (Insulin Sensitivity Factor).
+- **Easy Logging:** Take a picture, get detailed nutrition info instantly, and save it to your history.
+- **AI as a simple helper:** OpenAI GPT-4o Vision is strictly used for food and weight identification, not for medical advice or diary management.
+- **Optional Medical Tracking:** Advanced diabetes settings are turned off by default, keeping the app simple for general users.
+- **Doctor-Friendly Exports:** Export your history and glucose patterns into CSV/Excel for your doctor or nutritionist.
 
 > **Disclaimer:** The bot is an assistant, not a doctor. All calculations are transparent but serve as estimates. It does not replace professional medical advice.
 

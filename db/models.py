@@ -13,11 +13,11 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
     username: Mapped[str | None] = mapped_column(String(255))
-    icr: Mapped[float] = mapped_column(Float)
-    isf: Mapped[float] = mapped_column(Float)
-    target_bg: Mapped[float] = mapped_column(Float)
-    insulin_type: Mapped[str | None] = mapped_column(String(50))
+    icr: Mapped[float | None] = mapped_column(Float, nullable=True)
+    isf: Mapped[float | None] = mapped_column(Float, nullable=True)
+    target_bg: Mapped[float | None] = mapped_column(Float, nullable=True)
     language: Mapped[str] = mapped_column(String(5), server_default="en")
+    diabetes_mode: Mapped[bool] = mapped_column(server_default="false", default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     meals: Mapped[list["MealLog"]] = relationship(
