@@ -52,3 +52,12 @@ async def update_user_language(session: AsyncSession, user_id: int, language: st
         update(User).where(User.id == user_id).values(language=language)
     )
     await session.flush()
+
+
+async def delete_user(session: AsyncSession, user_id: int) -> bool:
+    user = await get_user(session, user_id)
+    if user:
+        await session.delete(user)
+        await session.flush()
+        return True
+    return False
