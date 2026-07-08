@@ -102,6 +102,6 @@ total      = carb_dose + correction
 
 ## Database & Migration Guidelines
 - **Outer Middleware Safety**: Do not perform raw database queries inside outer middlewares (registered on `dp.update.middleware`) without catching all exceptions. Any unhandled exceptions inside them bypass the router error handlers (`@router.errors()`), leading to silent failures where the user receives no message or error response.
-- **Asyncpg URL Validator**: Standard connection strings containing `sslmode` (e.g. from Fly.io database attachment variables) must be stripped of the `sslmode` query parameter before being passed to `asyncpg`.
-- **Explicit SSL Disable**: For Fly.io private networking, always configure the async engine with `connect_args={"ssl": False}` to prevent connection resets during TLS handshakes.
+- **Asyncpg URL Validator**: Standard connection strings containing `sslmode` (e.g. from Neon) must be stripped of the `sslmode` query parameter before being passed to `asyncpg`.
+- **Dynamic SSL Configuration**: When connecting to managed databases like Neon over the internet, `asyncpg` requires SSL. Ensure the async engine is configured to dynamically enable SSL (e.g. `connect_args={"ssl": True}`) if the database host is remote (like `neon.tech`).
 - **Alembic DDL Verification**: Never deploy or run migrations without verifying that the `upgrade()` method in the migration file contains the actual DDL commands (e.g. `op.create_table`) rather than a blank `pass`.

@@ -2,12 +2,17 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from core.config import config
 
+# Neon requires SSL, local docker does not
+connect_args = {}
+if "neon.tech" in config.DATABASE_URL:
+    connect_args["ssl"] = True
+
 engine = create_async_engine(
     config.DATABASE_URL,
     echo=False,
     pool_size=20,
     max_overflow=10,
     pool_pre_ping=True,
-    connect_args={"ssl": False},
+    connect_args=connect_args,
 )
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
