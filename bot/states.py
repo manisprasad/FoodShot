@@ -16,3 +16,7 @@ class FoodAnalysis(StatesGroup):
 class Settings(StatesGroup):
     waiting_for_value = State()
     waiting_for_delete_confirm = State()
+
+
+class HistoryState(StatesGroup):
+    waiting_for_delete = State()

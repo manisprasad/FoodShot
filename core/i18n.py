@@ -78,6 +78,8 @@ TEXTS = {
         "warning-7-days": "⚠️ *Important:* Your food logs from *{date}* will be permanently deleted in 7 days. Use /export to save them.",
         "warning-1-day": "⚠️ *Warning:* Your food logs from *{date}* will be permanently deleted tomorrow. Export them if you want to keep them.",
         "meal-deleted": "🗑 Meal deleted.",
+        "history-delete-instruction": "💡 *Tip:* To delete a meal from history & export, reply with its number (1-10).",
+        "error-invalid-index": "⚠️ *Invalid number.* Please enter a number between 1 and {max}.",
     },
     "uk": {
         "start-welcome": "👋 *Вітаю!* FoodShot — це ваш розумний щоденник харчування та трекер калорій з AI. Просто надішліть фото страви, щоб розпочати логування!\n\nВи можете налаштувати мову або увімкнути Режим діабету у Налаштуваннях.",
@@ -158,6 +160,8 @@ TEXTS = {
         "warning-7-days": "⚠️ *Важливо:* Ваші записи їжі від *{date}* будуть назавжди видалені через 7 днів. Використовуйте /export, щоб зберегти їх.",
         "warning-1-day": "⚠️ *Попередження:* Ваші записи їжі від *{date}* будуть назавжди видалені завтра. Експортуйте їх, якщо хочете зберегти.",
         "meal-deleted": "🗑 Запис видалено.",
+        "history-delete-instruction": "💡 *Порада:* Щоб видалити страву з історії та експорту, надішліть її номер (1-10) у відповідь.",
+        "error-invalid-index": "⚠️ *Некоректний номер.* Будь ласка, введіть число від 1 до {max}.",
     },
 }
 

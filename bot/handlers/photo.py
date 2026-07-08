@@ -32,6 +32,7 @@ async def handle_photo(
     state: FSMContext,
     i18n: I18n,
 ):
+    await state.clear()
     user = await crud.get_user(session, message.from_user.id)
     if not user:
         return await message.answer("Please /start registration first.")

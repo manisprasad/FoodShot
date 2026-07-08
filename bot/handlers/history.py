@@ -1,39 +1,21 @@
 from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.i18n import I18n
 from db import crud
 from db.models import MealLog
+from bot.states import HistoryState
 
 router = Router()
 
 
-EMOJI_NUMBERS = {
-    1: "1️⃣",
-    2: "2️⃣",
-    3: "3️⃣",
-    4: "4️⃣",
-    5: "5️⃣",
-    6: "6️⃣",
-    7: "7️⃣",
-    8: "8️⃣",
-    9: "9️⃣",
-    10: "🔟",
-}
-
-
-def get_history_content(
-    meals: list[MealLog], i18n: I18n
-) -> tuple[str, types.InlineKeyboardMarkup | None]:
+def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
     if not meals:
-        return i18n.get("history-empty"), None
+        return i18n.get("history-empty")
 
     text = i18n.get("history-header") + "\n"
-    builder = InlineKeyboardBuilder()
-    row_buttons = []
 
     for idx, meal in enumerate(meals, 1):
         date_str = meal.created_at.strftime("%d.%m %H:%M")
@@ -52,19 +34,9 @@ def get_history_content(
 
         text += item_text + "\n\n"
 
-        # Add delete button matching this list index with emoji numbers
-        btn_label = EMOJI_NUMBERS.get(idx, str(idx))
-        row_buttons.append(
-            types.InlineKeyboardButton(
-                text=btn_label, callback_data=f"delete_meal:{meal.id}"
-            )
-        )
-
-    # Group delete buttons into rows of up to 5
-    for i in range(0, len(row_buttons), 5):
-        builder.row(*row_buttons[i : i + 5])
-
-    return text, builder.as_markup()
+    # Append deletion hint at the bottom
+    text += i18n.get("history-delete-instruction")
+    return text
 
 
 @router.message(Command("history"))
@@ -74,23 +46,41 @@ async def cmd_history(
 ):
     await state.clear()
     meals = await crud.get_user_history(session, message.from_user.id, limit=10)
-    text, reply_markup = get_history_content(meals, i18n)
-    await message.answer(text, reply_markup=reply_markup)
+    text = get_history_content(meals, i18n)
+
+    await message.answer(text)
+
+    if meals:
+        await state.set_state(HistoryState.waiting_for_delete)
+        await state.update_data(meal_ids=[meal.id for meal in meals])
 
 
-@router.callback_query(F.data.startswith("delete_meal:"))
-async def process_delete_meal(
-    callback: types.CallbackQuery, session: AsyncSession, i18n: I18n
+@router.message(HistoryState.waiting_for_delete, F.text.regexp(r"^(10|[1-9])$"))
+async def process_delete_history_by_index(
+    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
-    meal_id = int(callback.data.split(":")[1])
+    data = await state.get_data()
+    meal_ids = data.get("meal_ids", [])
 
-    # Delete meal log
+    # Parse 1-indexed number to 0-indexed index
+    index = int(message.text) - 1
+    if index < 0 or index >= len(meal_ids):
+        max_val = len(meal_ids)
+        await message.answer(i18n.get("error-invalid-index", max=max_val))
+        return
+
+    meal_id = meal_ids[index]
+
+    # Delete meal
     await crud.delete_meal_log(session, meal_id)
+    await message.answer(i18n.get("meal-deleted"))
 
-    # Re-fetch updated logs
-    meals = await crud.get_user_history(session, callback.from_user.id, limit=10)
-    text, reply_markup = get_history_content(meals, i18n)
+    # Re-fetch remaining meals and send the updated list as a new message
+    meals = await crud.get_user_history(session, message.from_user.id, limit=10)
+    text = get_history_content(meals, i18n)
+    await message.answer(text)
 
-    # Edit message in-place
-    await callback.message.edit_text(text=text, reply_markup=reply_markup)
-    await callback.answer(i18n.get("meal-deleted"))
+    if meals:
+        await state.update_data(meal_ids=[meal.id for meal in meals])
+    else:
+        await state.clear()
