@@ -16,7 +16,6 @@ class User(Base):
     icr: Mapped[float | None] = mapped_column(Float, nullable=True)
     isf: Mapped[float | None] = mapped_column(Float, nullable=True)
     target_bg: Mapped[float | None] = mapped_column(Float, nullable=True)
-    insulin_type: Mapped[str | None] = mapped_column(String(50), nullable=True)
     language: Mapped[str] = mapped_column(String(5), server_default="en")
     diabetes_mode: Mapped[bool] = mapped_column(server_default="false", default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
