@@ -137,6 +137,9 @@ async def process_delete_confirm(
         await message.answer(
             i18n.get("delete-success"), reply_markup=types.ReplyKeyboardRemove()
         )
+        from bot.handlers.start import cmd_start
+
+        await cmd_start(message, session, state, i18n)
     else:
         await state.clear()
         await message.answer(i18n.get("delete-cancelled"))

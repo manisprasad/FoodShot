@@ -100,7 +100,10 @@ async def test_process_delete_confirm_success():
     state.get_data.return_value = {"delete_target": "testuser"}
     i18n = I18n("en")
 
-    with patch("bot.handlers.settings.crud.delete_user") as mock_delete_user:
+    with (
+        patch("bot.handlers.settings.crud.delete_user") as mock_delete_user,
+        patch("bot.handlers.start.cmd_start") as mock_cmd_start,
+    ):
         await process_delete_confirm(message, session, state, i18n)
 
         mock_delete_user.assert_called_once_with(session, 12345)
@@ -108,6 +111,7 @@ async def test_process_delete_confirm_success():
         message.answer.assert_called_once_with(
             i18n.get("delete-success"), reply_markup=ReplyKeyboardRemove()
         )
+        mock_cmd_start.assert_called_once_with(message, session, state, i18n)
 
 
 @pytest.mark.asyncio
