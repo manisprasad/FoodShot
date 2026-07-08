@@ -54,7 +54,9 @@ async def lifespan(app: FastAPI):
         await ping_task
     except asyncio.CancelledError:
         pass
-    await bot.delete_webhook()
+    # We purposefully do not delete the webhook here because during rolling updates
+    # (like on Render), the old instance shutting down would delete the webhook
+    # that the new instance just set.
 
 
 async def process_update_with_timeout(
