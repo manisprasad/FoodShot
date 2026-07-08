@@ -31,18 +31,18 @@ mock_get.return_value = mock_response
 ```
 
 ### 3. Plan Files in the Workspace
-All planning documents must be saved in `doc/plans/` without providing `ArtifactMetadata` to `write_to_file`. `ArtifactMetadata` is reserved for UI-facing markdown files inside the brain directory.
+All planning documents must be saved in `docs/plans/` without providing `ArtifactMetadata` to `write_to_file`. `ArtifactMetadata` is reserved for UI-facing markdown files inside the brain directory.
 
 ### 4. Git Staging
 Always stage specific files (`git add path/to/file.py`) rather than using `git add .` to avoid committing unwanted scratch files or git-ignored plan folders.
 
 ### 5. Documentation Structure & Maintenance
-Maintain the `doc/` directory with strict organization:
-- `doc/plans/`: Contains active and completed step-by-step task plans. Folder naming: `XX_description/`. File naming: `[X.Y]_description.md`. Statuses: `PROPOSED`, `IN PROGRESS`, `DONE`. Always mark completed plans as `DONE` at task completion.
-- `doc/security/`: Dedicated directory for audits, vulnerabilities, and technical debt. Folder naming: `XX_category/`. File naming: `[X.Y]_description.md`. Maintain and update checklists when vulnerabilities are verified or fixed.
-- `doc/roadmap/`: Future strategic plans and pivot documents.
-- `doc/marketing/`: Drafts, blog posts, and articles.
-- Root `doc/`: Keep only core documentation (`MVP.md`, `links.md`, architecture diagrams).
+Maintain the `docs/` directory with strict organization:
+- `docs/plans/`: Contains active and completed step-by-step task plans. Folder naming: `XX_description/`. File naming: `[X.Y]_description.md`. Statuses: `PROPOSED`, `IN PROGRESS`, `DONE`. Always mark completed plans as `DONE` at task completion.
+- `docs/security/`: Dedicated directory for audits, vulnerabilities, and technical debt. Folder naming: `XX_category/`. File naming: `[X.Y]_description.md`. Maintain and update checklists when vulnerabilities are verified or fixed.
+- `docs/roadmap/`: Future strategic plans and pivot documents.
+- `docs/marketing/`: Drafts, blog posts, and articles.
+- Root `docs/`: Keep only core documentation (`MVP.md`, `links.md`, architecture diagrams).
 
 ### 6. Deployment & Diagnostics Guidelines
 - **Python Logging Buffering**: Python buffers stdout by default in Docker containers when not run in a TTY. Always ensure `PYTHONUNBUFFERED=1` is set in the environment or container definition to view real-time logs via `flyctl logs`.
