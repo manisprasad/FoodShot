@@ -1,4 +1,5 @@
 from typing import Optional
+from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -24,8 +25,23 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             if v.startswith("postgres://"):
                 v = v.replace("postgres://", "postgresql+asyncpg://", 1)
-            elif v.startswith("postgresql://") and not v.startswith("postgresql+asyncpg://"):
+            elif v.startswith("postgresql://") and not v.startswith(
+                "postgresql+asyncpg://"
+            ):
                 v = v.replace("postgresql://", "postgresql+asyncpg://", 1)
+
+            # Strip sslmode because asyncpg doesn't accept it
+            try:
+                parsed = urlparse(v)
+                if parsed.query:
+                    query_params = dict(parse_qsl(parsed.query))
+                    if "sslmode" in query_params:
+                        del query_params["sslmode"]
+                        new_query = urlencode(query_params)
+                        parsed = parsed._replace(query=new_query)
+                        v = urlunparse(parsed)
+            except Exception:
+                pass
         return v
 
     model_config = SettingsConfigDict(
