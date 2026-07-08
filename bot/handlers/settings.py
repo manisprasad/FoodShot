@@ -290,7 +290,7 @@ async def process_configure_diabetes(
 ):
     await state.set_state(DiabetesSetupState.waiting_for_icr)
     await callback.message.edit_text(
-        text=i18n.get("start-welcome"),
+        text=i18n.get("enter-icr"),
         reply_markup=None,
     )
     await callback.answer()

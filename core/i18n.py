@@ -1,6 +1,7 @@
 TEXTS = {
     "en": {
         "start-welcome": "👋 *Welcome!* FoodShot is your AI-powered smart food diary and calorie tracker. Simply send a photo of your meal to start logging!\n\nYou can configure languages or enable Diabetes Mode in Settings.",
+        "enter-icr": "👋 *Let's set up Diabetes Mode.*\n\nEnter your *ICR* (carbs per 1U insulin):",
         "enter-isf": "✅ Got it. Now enter your *ISF* (BG drop per 1U insulin):",
         "enter-target": "🎯 What is your *target* blood glucose? (mmol/L):",
         "enter-insulin": "💉 Which *insulin* do you use? (e.g., NovoRapid):",
@@ -64,6 +65,7 @@ TEXTS = {
     },
     "uk": {
         "start-welcome": "👋 *Вітаю!* FoodShot — це ваш розумний щоденник харчування та трекер калорій з AI. Просто надішліть фото страви, щоб розпочати логування!\n\nВи можете налаштувати мову або увімкнути Режим діабету у Налаштуваннях.",
+        "enter-icr": "👋 *Давайте налаштуємо режим діабету.*\n\nВведіть ваш *ICR* (кількість вуглеводів на 1 од. інсуліну):",
         "enter-isf": "✅ Зрозумів. Тепер введіть ваш *ISF* (на скільки ммоль/л знижує цукор 1 од. інсуліну):",
         "enter-target": "🎯 Який ваш *цільовий* рівень цукру? (ммоль/л):",
         "enter-insulin": "💉 Який *інсулін* ви використовуєте? (наприклад, НовоРапід):",
