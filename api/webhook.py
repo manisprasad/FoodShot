@@ -16,6 +16,7 @@ from db.database import SessionLocal
 from core.logger import setup_logging
 from loguru import logger
 from services.retention import run_retention_scheduler
+from services.keep_alive import ping_render
 
 setup_logging()
 
@@ -41,10 +42,16 @@ async def lifespan(app: FastAPI):
         url=config.WEBHOOK_URL, secret_token=config.WEBHOOK_SECRET_TOKEN
     )
     scheduler_task = asyncio.create_task(run_retention_scheduler(bot))
+    ping_task = asyncio.create_task(ping_render())
     yield
     scheduler_task.cancel()
+    ping_task.cancel()
     try:
         await scheduler_task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await ping_task
     except asyncio.CancelledError:
         pass
     await bot.delete_webhook()
