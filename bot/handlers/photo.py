@@ -146,7 +146,6 @@ async def _finish_analysis(
             text=i18n.get(
                 "result-bolus",
                 total=bolus["total_dose"],
-                type=user.insulin_type,
                 carb_dose=bolus["carb_dose"],
                 correction=bolus["correction_dose"],
                 dish=data["dish_name"],

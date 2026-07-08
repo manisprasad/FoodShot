@@ -8,7 +8,6 @@ from bot.handlers.settings import (
     process_setup_icr,
     process_setup_isf,
     process_setup_target_bg,
-    process_setup_insulin_type,
     process_new_value,
 )
 from bot.states import Registration as DiabetesSetupState
@@ -151,33 +150,11 @@ async def test_process_setup_isf_validation():
 async def test_process_setup_target_bg_validation():
     # Test valid Target BG
     message = AsyncMock()
-    message.text = "5.5"
-    state = AsyncMock(spec=FSMContext)
-    i18n = I18n("en")
-
-    await process_setup_target_bg(message, state, i18n)
-    state.update_data.assert_called_once_with(target_bg=5.5)
-    state.set_state.assert_called_once_with(DiabetesSetupState.waiting_for_insulin_type)
-    message.answer.assert_called_once_with(i18n.get("enter-insulin"))
-
-    # Test invalid range Target BG (too high)
-    message_invalid = AsyncMock()
-    message_invalid.text = "15.0"
-    state_invalid = AsyncMock(spec=FSMContext)
-
-    await process_setup_target_bg(message_invalid, state_invalid, i18n)
-    state_invalid.update_data.assert_not_called()
-    message_invalid.answer.assert_called_once_with(i18n.get("error-range-target"))
-
-
-@pytest.mark.asyncio
-async def test_process_setup_insulin_type():
-    message = AsyncMock()
     message.from_user.id = 12345
-    message.text = "NovoRapid"
+    message.text = "5.5"
     session = AsyncMock()
     state = AsyncMock(spec=FSMContext)
-    state.get_data.return_value = {"icr": 5.0, "isf": 5.0, "target_bg": 5.0}
+    state.get_data.return_value = {"icr": 5.0, "isf": 5.0}
     i18n = I18n("en")
 
     user = MagicMock()
@@ -187,15 +164,14 @@ async def test_process_setup_insulin_type():
         patch("bot.handlers.settings.crud.update_user") as mock_update_user,
         patch("bot.handlers.settings.crud.get_user", return_value=user),
     ):
-        await process_setup_insulin_type(message, session, state, i18n)
+        await process_setup_target_bg(message, session, state, i18n)
 
         mock_update_user.assert_called_once_with(
             session=session,
             user_id=12345,
             icr=5.0,
             isf=5.0,
-            target_bg=5.0,
-            insulin_type="NovoRapid",
+            target_bg=5.5,
             diabetes_mode=True,
         )
         assert state.clear.call_count == 2
@@ -203,6 +179,16 @@ async def test_process_setup_insulin_type():
         message.answer.assert_any_call(
             text=i18n.get("diabetes-enabled"), reply_markup=ANY
         )
+
+    # Test invalid range Target BG (too high)
+    message_invalid = AsyncMock()
+    message_invalid.text = "15.0"
+    session_invalid = AsyncMock()
+    state_invalid = AsyncMock(spec=FSMContext)
+
+    await process_setup_target_bg(message_invalid, session_invalid, state_invalid, i18n)
+    state_invalid.update_data.assert_not_called()
+    message_invalid.answer.assert_called_once_with(i18n.get("error-range-target"))
 
 
 @pytest.mark.asyncio

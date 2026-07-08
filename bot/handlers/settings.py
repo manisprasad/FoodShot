@@ -143,7 +143,6 @@ async def process_diabetes_menu(
             icr=user.icr,
             isf=user.isf,
             target=user.target_bg,
-            type=user.insulin_type,
         )
         builder.row(
             types.InlineKeyboardButton(
@@ -202,10 +201,7 @@ async def process_edit_diabetes_params(
     builder.row(
         types.InlineKeyboardButton(
             text=i18n.get("btn-edit-target_bg"), callback_data="edit:target_bg"
-        ),
-        types.InlineKeyboardButton(
-            text=i18n.get("btn-edit-insulin_type"), callback_data="edit:insulin_type"
-        ),
+        )
     )
     builder.row(
         types.InlineKeyboardButton(
@@ -317,40 +313,31 @@ async def process_setup_isf(message: types.Message, state: FSMContext, i18n: I18
 
 @router.message(DiabetesSetupState.waiting_for_target_bg, F.text)
 async def process_setup_target_bg(
-    message: types.Message, state: FSMContext, i18n: I18n
+    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
     try:
         target_bg = float(message.text.replace(",", "."))
         if not (3.0 <= target_bg <= 12.0):
             return await message.answer(i18n.get("error-range-target"))
-        await state.update_data(target_bg=target_bg)
-        await state.set_state(DiabetesSetupState.waiting_for_insulin_type)
-        await message.answer(i18n.get("enter-insulin"))
+
+        data = await state.get_data()
+
+        await crud.update_user(
+            session=session,
+            user_id=message.from_user.id,
+            icr=data["icr"],
+            isf=data["isf"],
+            target_bg=target_bg,
+            diabetes_mode=True,
+        )
+        await state.clear()
+
+        await message.answer(
+            text=i18n.get("diabetes-enabled"), reply_markup=main_menu(i18n)
+        )
+        await cmd_settings(message, session, state, i18n)
     except ValueError:
         await message.answer(i18n.get("error-number"))
-
-
-@router.message(DiabetesSetupState.waiting_for_insulin_type, F.text)
-async def process_setup_insulin_type(
-    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
-):
-    data = await state.get_data()
-
-    await crud.update_user(
-        session=session,
-        user_id=message.from_user.id,
-        icr=data["icr"],
-        isf=data["isf"],
-        target_bg=data["target_bg"],
-        insulin_type=message.text,
-        diabetes_mode=True,
-    )
-    await state.clear()
-
-    await message.answer(
-        text=i18n.get("diabetes-enabled"), reply_markup=main_menu(i18n)
-    )
-    await cmd_settings(message, session, state, i18n)
 
 
 @router.callback_query(F.data == "change_lang")
