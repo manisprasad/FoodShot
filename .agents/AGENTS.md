@@ -95,4 +95,10 @@ total      = carb_dose + correction
 6. **PRE-FLIGHT CHECK:** Before creating a new plan, always search the `doc/plans/` directory for existing related plans.
    - If a similar plan exists, read it. Then, either edit it or expand it by creating the next version (e.g., `[1.2]`).
    - If no similar plan exists, start a new task folder and a new `[X.1]` plan.
-7. **TASK COMPLETION & CLOSING:** At the end of a task, after the user has tested everything, explicitly ask the user: "Is everything working as expected? Can we close this task?". Once the user confirms, update the relevant plan markdown file to mark the task as `DONE` (e.g., add `[x]` or `DONE` to the header). This prevents future AI sessions from re-reading and re-analyzing completed tasks, significantly saving tokens.
+7. TASK COMPLETION & CLOSING: At the end of a task, after the user has tested everything, explicitly ask the user: "Is everything working as expected? Can we close this task?". Once the user confirms, update the relevant plan markdown file to mark the task as `DONE` (e.g., add `[x]` or `DONE` to the header). This prevents future AI sessions from re-reading and re-analyzing completed tasks, significantly saving tokens.
+
+## Database & Migration Guidelines
+- **Outer Middleware Safety**: Do not perform raw database queries inside outer middlewares (registered on `dp.update.middleware`) without catching all exceptions. Any unhandled exceptions inside them bypass the router error handlers (`@router.errors()`), leading to silent failures where the user receives no message or error response.
+- **Asyncpg URL Validator**: Standard connection strings containing `sslmode` (e.g. from Fly.io database attachment variables) must be stripped of the `sslmode` query parameter before being passed to `asyncpg`.
+- **Explicit SSL Disable**: For Fly.io private networking, always configure the async engine with `connect_args={"ssl": False}` to prevent connection resets during TLS handshakes.
+- **Alembic DDL Verification**: Never deploy or run migrations without verifying that the `upgrade()` method in the migration file contains the actual DDL commands (e.g. `op.create_table`) rather than a blank `pass`.

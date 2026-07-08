@@ -43,3 +43,8 @@ Maintain the `doc/` directory with strict organization:
 - `doc/roadmap/`: Future strategic plans and pivot documents.
 - `doc/marketing/`: Drafts, blog posts, and articles.
 - Root `doc/`: Keep only core documentation (`MVP.md`, `links.md`, architecture diagrams).
+
+### 6. Deployment & Diagnostics Guidelines
+- **Python Logging Buffering**: Python buffers stdout by default in Docker containers when not run in a TTY. Always ensure `PYTHONUNBUFFERED=1` is set in the environment or container definition to view real-time logs via `flyctl logs`.
+- **Direct Diagnostics**: If logs are delayed or buffered, run diagnostic commands directly in the container using `flyctl ssh console -C "<command>"`.
+

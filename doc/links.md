@@ -25,3 +25,14 @@ This document contains all external services, dashboards, and API keys required 
 ## Public Documentation
 * **Public Docs Repository:** [https://github.com/soroqn1/foodshot-docs](https://github.com/soroqn1/foodshot-docs)
   * *Purpose:* Public-facing repository intended for recruiters and future users. Contains the high-level `MVP.md`.
+
+## Fly.io Deployment
+* **Fly.io Dashboard:** [https://fly.io/apps/foodshot](https://fly.io/apps/foodshot)
+  * *Purpose:* Monitoring deployments, metrics, logs, and database scaling.
+* **Production Webhook URL:** [https://foodshot.fly.dev/webhook](https://foodshot.fly.dev/webhook)
+  * *Purpose:* The Telegram webhook target URL.
+
+## Telegram Bot
+* **Telegram Bot:** [@FoodShot_Bot](https://t.me/FoodShot_Bot)
+  * *Purpose:* The active Telegram bot for users.
+
