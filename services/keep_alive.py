@@ -6,7 +6,7 @@ from core.config import config
 
 async def ping_render():
     """
-    Background task to ping the service's own /health endpoint every 10 minutes.
+    Background task to ping the service's own /health endpoint every 4 minutes.
     This prevents Render's free Web Service from going to sleep due to inactivity.
     """
     if not config.WEBHOOK_URL:
@@ -22,7 +22,7 @@ async def ping_render():
         return
 
     logger.info(
-        "Starting self-ping background task for %s (pings every 10 mins)", health_url
+        "Starting self-ping background task for %s (pings every 4 mins)", health_url
     )
 
     # Wait a bit before first ping to allow server to fully start
@@ -38,5 +38,5 @@ async def ping_render():
             except Exception as e:
                 logger.warning("Self-ping failed: %s", e)
 
-            # Ping every 10 minutes (600 seconds)
-            await asyncio.sleep(600)
+            # Ping every 4 minutes (240 seconds)
+            await asyncio.sleep(240)
