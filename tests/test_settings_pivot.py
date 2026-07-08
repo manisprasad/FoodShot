@@ -191,7 +191,7 @@ async def test_process_setup_insulin_type():
 
         mock_update_user.assert_called_once_with(
             session=session,
-            id=12345,
+            user_id=12345,
             icr=5.0,
             isf=5.0,
             target_bg=5.0,

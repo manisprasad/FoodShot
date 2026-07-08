@@ -345,7 +345,7 @@ async def process_setup_insulin_type(
 
     await crud.update_user(
         session=session,
-        id=message.from_user.id,
+        user_id=message.from_user.id,
         icr=data["icr"],
         isf=data["isf"],
         target_bg=data["target_bg"],
