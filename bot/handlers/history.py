@@ -11,6 +11,20 @@ from db.models import MealLog
 router = Router()
 
 
+EMOJI_NUMBERS = {
+    1: "1️⃣",
+    2: "2️⃣",
+    3: "3️⃣",
+    4: "4️⃣",
+    5: "5️⃣",
+    6: "6️⃣",
+    7: "7️⃣",
+    8: "8️⃣",
+    9: "9️⃣",
+    10: "🔟",
+}
+
+
 def get_history_content(
     meals: list[MealLog], i18n: I18n
 ) -> tuple[str, types.InlineKeyboardMarkup | None]:
@@ -38,10 +52,11 @@ def get_history_content(
 
         text += item_text + "\n\n"
 
-        # Add delete button matching this list index
+        # Add delete button matching this list index with emoji numbers
+        btn_label = EMOJI_NUMBERS.get(idx, str(idx))
         row_buttons.append(
             types.InlineKeyboardButton(
-                text=f"❌ {idx}", callback_data=f"delete_meal:{meal.id}"
+                text=btn_label, callback_data=f"delete_meal:{meal.id}"
             )
         )
 
@@ -53,7 +68,7 @@ def get_history_content(
 
 
 @router.message(Command("history"))
-@router.message(F.text.in_({"📜 History", "📜 Історія"}))
+@router.message(F.text.in_({"📝 Manage Last 10", "📝 Керувати останніми 10"}))
 async def cmd_history(
     message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
