@@ -40,18 +40,26 @@ async def process_start_lang(
 ):
     lang = callback.data.split(":")[1]
 
-    # Register user in DB
-    await crud.create_user(
-        session=session,
-        id=callback.from_user.id,
-        username=callback.from_user.username,
-        icr=None,
-        isf=None,
-        target_bg=None,
-        insulin_type=None,
-        language=lang,
-        diabetes_mode=False,
-    )
+    # Register user in DB safely checking if they already exist to handle double-clicks
+    user = await crud.get_user(session, callback.from_user.id)
+    if not user:
+        try:
+            await crud.create_user(
+                session=session,
+                id=callback.from_user.id,
+                username=callback.from_user.username,
+                icr=None,
+                isf=None,
+                target_bg=None,
+                insulin_type=None,
+                language=lang,
+                diabetes_mode=False,
+            )
+        except Exception:
+            pass
+    else:
+        if user.language != lang:
+            await crud.update_user_language(session, user.id, lang)
 
     i18n.lang = lang
 
