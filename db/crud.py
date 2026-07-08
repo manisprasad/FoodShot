@@ -96,3 +96,22 @@ async def get_users_with_logs_on_day(
         .distinct()
     )
     return list(result.scalars().all())
+
+
+async def get_active_months(
+    session: AsyncSession, user_id: int
+) -> list[tuple[int, int]]:
+    result = await session.execute(
+        select(MealLog.created_at)
+        .where(MealLog.user_id == user_id)
+        .order_by(MealLog.created_at.desc())
+    )
+    dates = result.scalars().all()
+    seen = set()
+    active = []
+    for dt in dates:
+        key = (dt.year, dt.month)
+        if key not in seen:
+            seen.add(key)
+            active.append(key)
+    return active
