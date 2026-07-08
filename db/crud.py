@@ -115,3 +115,13 @@ async def get_active_months(
             seen.add(key)
             active.append(key)
     return active
+
+
+async def delete_meal_log(session: AsyncSession, meal_id: int) -> bool:
+    result = await session.execute(select(MealLog).where(MealLog.id == meal_id))
+    meal = result.scalar_one_or_none()
+    if meal:
+        await session.delete(meal)
+        await session.flush()
+        return True
+    return False
