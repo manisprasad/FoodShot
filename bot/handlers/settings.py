@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from bot.keyboards import language_menu, main_menu
+from bot.keyboards import main_menu
 from bot.states import Settings as SettingsState
 from bot.states import Registration as DiabetesSetupState
 from core.i18n import I18n
@@ -13,11 +13,11 @@ from db import crud
 router = Router()
 
 
-def get_settings_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
+def get_more_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(
         types.InlineKeyboardButton(
-            text=i18n.get("btn-change-lang"), callback_data="change_lang"
+            text=i18n.get("btn-settings-submenu"), callback_data="settings_submenu"
         ),
         types.InlineKeyboardButton(
             text=i18n.get("btn-diabetes-mode"), callback_data="diabetes_menu"
@@ -32,19 +32,14 @@ def get_settings_keyboard(i18n: I18n) -> types.InlineKeyboardMarkup:
 
 
 @router.message(Command("settings"))
-@router.message(F.text.in_({"⚙️ Settings", "⚙️ Налаштування"}))
+@router.message(F.text.in_({"⚙️ More", "⚙️ Більше"}))
 async def cmd_settings(
     message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
     await state.clear()
-    user = await crud.get_user(session, message.from_user.id)
-
     await message.answer(
-        i18n.get(
-            "settings-main",
-            lang="English" if user.language == "en" else "Українська",
-        ),
-        reply_markup=get_settings_keyboard(i18n),
+        i18n.get("more-options-header"),
+        reply_markup=get_more_keyboard(i18n),
     )
 
 
@@ -59,7 +54,7 @@ async def cmd_danger(message: types.Message, state: FSMContext, i18n: I18n):
     )
     builder.row(
         types.InlineKeyboardButton(
-            text=i18n.get("btn-back"), callback_data="back_to_settings"
+            text=i18n.get("btn-back"), callback_data="settings_submenu"
         )
     )
     await message.answer(
@@ -73,13 +68,36 @@ async def process_back_to_settings(
     callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
     await state.clear()
+    await callback.message.edit_text(
+        i18n.get("more-options-header"),
+        reply_markup=get_more_keyboard(i18n),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "settings_submenu")
+async def process_settings_submenu(
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    await state.clear()
     user = await crud.get_user(session, callback.from_user.id)
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-change-lang"), callback_data="change_lang"
+        )
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-back"), callback_data="back_to_settings"
+        )
+    )
     await callback.message.edit_text(
         i18n.get(
             "settings-main",
             lang="English" if user.language == "en" else "Українська",
         ),
-        reply_markup=get_settings_keyboard(i18n),
+        reply_markup=builder.as_markup(),
     )
     await callback.answer()
 
@@ -350,8 +368,24 @@ async def process_change_lang(
     callback: types.CallbackQuery, session: AsyncSession, i18n: I18n
 ):
     user = await crud.get_user(session, callback.from_user.id)
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text="🇬🇧 English" + (" ✅" if user.language == "en" else ""),
+            callback_data="set_lang:en",
+        ),
+        types.InlineKeyboardButton(
+            text="🇺🇦 Українська" + (" ✅" if user.language == "uk" else ""),
+            callback_data="set_lang:uk",
+        ),
+    )
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-back"), callback_data="settings_submenu"
+        )
+    )
     await callback.message.edit_text(
-        i18n.get("select-lang"), reply_markup=language_menu(user.language)
+        i18n.get("select-lang"), reply_markup=builder.as_markup()
     )
     await callback.answer()
 

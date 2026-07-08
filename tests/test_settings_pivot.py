@@ -227,3 +227,25 @@ async def test_process_new_value_validation():
 
         mock_update_user_invalid.assert_not_called()
         message_invalid.answer.assert_called_once_with(i18n.get("error-range-icr"))
+
+
+@pytest.mark.asyncio
+async def test_process_settings_submenu():
+    from bot.handlers.settings import process_settings_submenu
+
+    callback = AsyncMock()
+    callback.from_user.id = 12345
+    session = AsyncMock()
+    state = AsyncMock(spec=FSMContext)
+    i18n = I18n("en")
+
+    user = MagicMock()
+    user.language = "en"
+
+    with patch("bot.handlers.settings.crud.get_user", return_value=user):
+        await process_settings_submenu(callback, session, state, i18n)
+
+        callback.message.edit_text.assert_called_once()
+        assert "Your Settings:" in callback.message.edit_text.call_args[0][0]
+        state.clear.assert_called_once()
+        callback.answer.assert_called_once()
