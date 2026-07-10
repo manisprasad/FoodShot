@@ -6,6 +6,7 @@ from aiogram.types import User as TelegramUser
 
 from core.i18n import I18n
 from db import crud
+from loguru import logger
 
 
 class SimpleI18nMiddleware(BaseMiddleware):
@@ -20,13 +21,15 @@ class SimpleI18nMiddleware(BaseMiddleware):
 
         lang = "en"
         if user:
-            db_user = await crud.get_user(session, user.id)
-            if db_user:
-                lang = db_user.language
-            else:
-                lang = (
-                    user.language_code if user.language_code in ["uk", "en"] else "en"
-                )
+            try:
+                db_user = await crud.get_user(session, user.id)
+                if db_user:
+                    lang = db_user.language
+                else:
+                    lang = user.language_code if user.language_code in ["uk", "en"] else "en"
+            except Exception as e:
+                logger.exception("Failed to get user in i18n middleware", exc_info=e)
+                lang = user.language_code if getattr(user, "language_code", "") in ["uk", "en"] else "en"
 
         data["i18n"] = I18n(lang)
         return await handler(event, data)

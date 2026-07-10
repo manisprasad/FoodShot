@@ -79,4 +79,3 @@ async def process_start_lang(
     await callback.answer()
 
 
-Length: 2187
