@@ -26,10 +26,18 @@ class SimpleI18nMiddleware(BaseMiddleware):
                 if db_user:
                     lang = db_user.language
                 else:
-                    lang = user.language_code if user.language_code in ["uk", "en"] else "en"
+                    lang = (
+                        user.language_code
+                        if user.language_code in ["uk", "en"]
+                        else "en"
+                    )
             except Exception as e:
                 logger.exception("Failed to get user in i18n middleware", exc_info=e)
-                lang = user.language_code if getattr(user, "language_code", "") in ["uk", "en"] else "en"
+                lang = (
+                    user.language_code
+                    if getattr(user, "language_code", "") in ["uk", "en"]
+                    else "en"
+                )
 
         data["i18n"] = I18n(lang)
         return await handler(event, data)

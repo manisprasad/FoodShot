@@ -77,5 +77,3 @@ async def process_start_lang(
         reply_markup=main_menu(i18n),
     )
     await callback.answer()
-
-
