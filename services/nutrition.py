@@ -1,10 +1,10 @@
-import httpx
-
 import json
+
+import httpx
+from loguru import logger
 
 from core.config import config
 from core.redis_client import redis_client
-from loguru import logger
 
 
 class USDAAPIError(Exception):

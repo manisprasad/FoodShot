@@ -1,9 +1,9 @@
-from aiogram import Router, types, F
+from aiogram import F, Router, types
 from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
-from sqlalchemy.ext.asyncio import AsyncSession
 from loguru import logger
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import main_menu
 from core.i18n import I18n
@@ -77,6 +77,3 @@ async def process_start_lang(
         reply_markup=main_menu(i18n),
     )
     await callback.answer()
-
-
-Length: 2187

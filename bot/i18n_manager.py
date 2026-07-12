@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from aiogram.types import User as TelegramUser
 from aiogram_i18n.managers import BaseManager
@@ -8,7 +8,7 @@ from db import crud
 
 class UserI18nManager(BaseManager):
     async def get_locale(
-        self, event_from_user: Optional[TelegramUser], session: Any = None
+        self, event_from_user: TelegramUser | None, session: Any = None
     ) -> str:
         if not event_from_user:
             return "en"

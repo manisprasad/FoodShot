@@ -1,12 +1,13 @@
 import asyncio
-from datetime import datetime, timedelta, date, time
-from loguru import logger
-from aiogram import Bot
+from datetime import date, datetime, time, timedelta
 
-from core.redis_client import redis_client
-from db.database import SessionLocal
-from db import crud
+from aiogram import Bot
+from loguru import logger
+
 from core.i18n import I18n
+from core.redis_client import redis_client
+from db import crud
+from db.database import SessionLocal
 
 REDIS_RETENTION_LOCK_KEY = "last_retention_check_date"
 

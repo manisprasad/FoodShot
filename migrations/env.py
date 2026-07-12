@@ -1,14 +1,12 @@
 import asyncio
+import sys
 from logging.config import fileConfig
+from os.path import abspath, dirname
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-
-from alembic import context
-
-import sys
-from os.path import dirname, abspath
 
 sys.path.append(dirname(dirname(abspath(__file__))))
 

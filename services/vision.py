@@ -1,8 +1,8 @@
 import base64
 
+from loguru import logger
 from openai import AsyncOpenAI
 from pydantic import BaseModel
-from loguru import logger
 
 from core.config import config
 

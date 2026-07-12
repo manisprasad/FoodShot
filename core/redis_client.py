@@ -1,4 +1,5 @@
 import redis.asyncio as redis
+
 from core.config import config
 
 # Global Redis client for caching and application state

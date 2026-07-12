@@ -1,14 +1,16 @@
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
+
 import pytest
 from aiogram.fsm.context import FSMContext
+
 from bot.handlers.settings import (
     process_diabetes_menu,
     process_disable_diabetes,
     process_edit_diabetes_params,
+    process_new_value,
     process_setup_icr,
     process_setup_isf,
     process_setup_target_bg,
-    process_new_value,
 )
 from bot.states import Registration as DiabetesSetupState
 from core.i18n import I18n

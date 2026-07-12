@@ -1,8 +1,10 @@
 import asyncio
+
 from loguru import logger
-from api.webhook import dp, bot
-from services.retention import run_retention_scheduler
+
+from api.webhook import bot, dp
 from core.logger import setup_logging
+from services.retention import run_retention_scheduler
 
 
 async def main():

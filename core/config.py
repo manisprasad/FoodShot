@@ -1,4 +1,3 @@
-from typing import Optional
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from pydantic import field_validator
@@ -8,15 +7,15 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     BOT_TOKEN: str
     OPENAI_API_KEY: str
-    GEMINI_API_KEY: Optional[str] = None
-    USDA_API_KEY: Optional[str] = None
-    NUTRITIONIX_APP_ID: Optional[str] = None
-    NUTRITIONIX_API_KEY: Optional[str] = None
+    GEMINI_API_KEY: str | None = None
+    USDA_API_KEY: str | None = None
+    NUTRITIONIX_APP_ID: str | None = None
+    NUTRITIONIX_API_KEY: str | None = None
     DATABASE_URL: str
     REDIS_URL: str
     WEBHOOK_URL: str
     WEBHOOK_SECRET_TOKEN: str
-    CLOUDFLARE_TUNNEL_TOKEN: Optional[str] = None
+    CLOUDFLARE_TUNNEL_TOKEN: str | None = None
     PORT: int = 8000
 
     @field_validator("DATABASE_URL", mode="before")

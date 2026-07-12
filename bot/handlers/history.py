@@ -3,10 +3,10 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from bot.states import HistoryState
 from core.i18n import I18n
 from db import crud
 from db.models import MealLog
-from bot.states import HistoryState
 
 router = Router()
 

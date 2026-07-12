@@ -1,14 +1,15 @@
-import io
 import csv
-from datetime import datetime, timedelta, time
-from aiogram import Router, F, types
+import io
+from datetime import datetime, time, timedelta
+
+from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import crud
 from core.i18n import I18n
+from db import crud
 
 router = Router()
 
