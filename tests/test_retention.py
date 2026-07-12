@@ -1,8 +1,10 @@
 from datetime import date, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from services.retention import perform_retention_checks, REDIS_RETENTION_LOCK_KEY
+
 from core.i18n import I18n
+from services.retention import REDIS_RETENTION_LOCK_KEY, perform_retention_checks
 
 
 @pytest.mark.asyncio

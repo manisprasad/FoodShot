@@ -1,7 +1,9 @@
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
+
 from bot.handlers.settings import (
     cmd_danger,
     process_back_to_settings,

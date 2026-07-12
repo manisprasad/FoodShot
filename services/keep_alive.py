@@ -1,6 +1,8 @@
 import asyncio
+
 import aiohttp
 from loguru import logger
+
 from core.config import config
 
 

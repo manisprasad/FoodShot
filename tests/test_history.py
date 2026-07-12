@@ -1,10 +1,12 @@
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
+
 import pytest
 from aiogram.fsm.context import FSMContext
+
 from bot.handlers.history import cmd_history, process_delete_history_by_index
-from db.models import MealLog
 from core.i18n import I18n
+from db.models import MealLog
 
 
 @pytest.mark.asyncio

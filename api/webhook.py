@@ -4,19 +4,19 @@ from contextlib import asynccontextmanager
 from aiogram import Bot, Dispatcher, types
 from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.redis import RedisStorage
-from fastapi import FastAPI, Header, HTTPException, BackgroundTasks
-
+from fastapi import BackgroundTasks, FastAPI, Header, HTTPException
+from loguru import logger
 from sqlalchemy import text
-from bot.handlers import common, history, photo, settings, start, export
+
+from bot.handlers import common, export, history, photo, settings, start
 from bot.i18n_middleware import SimpleI18nMiddleware
 from bot.middlewares import DbSessionMiddleware
 from core.config import config
+from core.logger import setup_logging
 from core.redis_client import redis_client
 from db.database import SessionLocal
-from core.logger import setup_logging
-from loguru import logger
-from services.retention import run_retention_scheduler
 from services.keep_alive import ping_render
+from services.retention import run_retention_scheduler
 
 setup_logging()
 
@@ -64,7 +64,7 @@ async def process_update_with_timeout(
 ):
     try:
         await asyncio.wait_for(dp.feed_update(bot, update), timeout=timeout)
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.error(
             "Processing of update %s timed out after %s seconds",
             update.update_id,

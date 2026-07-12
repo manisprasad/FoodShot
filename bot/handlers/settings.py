@@ -5,8 +5,8 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import main_menu
-from bot.states import Settings as SettingsState
 from bot.states import Registration as DiabetesSetupState
+from bot.states import Settings as SettingsState
 from core.i18n import I18n
 from db import crud
 

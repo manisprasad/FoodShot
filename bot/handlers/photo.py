@@ -1,5 +1,6 @@
 from aiogram import Bot, F, Router, types
 from aiogram.fsm.context import FSMContext
+from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import weight_adjust_keyboard
@@ -7,7 +8,6 @@ from bot.states import FoodAnalysis
 from core.i18n import I18n
 from db import crud
 from services import calc, nutrition, vision
-from loguru import logger
 
 router = Router()
 

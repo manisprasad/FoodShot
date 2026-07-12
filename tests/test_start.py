@@ -1,9 +1,11 @@
-from unittest.mock import AsyncMock, MagicMock, patch, ANY
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
+
 import pytest
 from aiogram.fsm.context import FSMContext
+
 from bot.handlers.start import cmd_start, process_start_lang
-from db.models import User
 from core.i18n import I18n
+from db.models import User
 
 
 @pytest.mark.asyncio
