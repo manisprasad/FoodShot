@@ -6,6 +6,7 @@ from loguru import logger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import main_menu
+from bot.states import Registration
 from core.i18n import I18n
 from db import crud
 
@@ -37,7 +38,7 @@ async def cmd_start(
 
 @router.callback_query(F.data.startswith("start_lang:"))
 async def process_start_lang(
-    callback: types.CallbackQuery, session: AsyncSession, i18n: I18n
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
 ):
     lang = callback.data.split(":")[1]
 
@@ -54,6 +55,7 @@ async def process_start_lang(
                 target_bg=None,
                 language=lang,
                 diabetes_mode=False,
+                daily_report_enabled=True,  # Default to True, onboarding will adjust
             )
         except Exception as e:
             logger.exception(
@@ -71,9 +73,84 @@ async def process_start_lang(
     except Exception:
         pass
 
-    # Send welcoming guide with the main menu reply keyboard
+    # Ask for Daily Progress Reports onboarding
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-yes"), callback_data="report_onboard:yes"
+        ),
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-no"), callback_data="report_onboard:no"
+        ),
+    )
     await callback.message.answer(
-        i18n.get("how-to-use-text"),
-        reply_markup=main_menu(i18n),
+        i18n.get("onboarding-ask-reports"),
+        reply_markup=builder.as_markup(),
     )
     await callback.answer()
+
+
+@router.callback_query(F.data.startswith("report_onboard:"))
+async def process_report_onboard(
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    choice = callback.data.split(":")[1]
+
+    if choice == "no":
+        await crud.update_user(
+            session=session,
+            user_id=callback.from_user.id,
+            daily_report_enabled=False,
+            daily_calorie_target=None,
+        )
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+
+        # Send welcoming guide with the main menu reply keyboard
+        await callback.message.answer(
+            i18n.get("how-to-use-text"),
+            reply_markup=main_menu(i18n),
+        )
+    else:
+        # User selected Yes
+        await crud.update_user(
+            session=session,
+            user_id=callback.from_user.id,
+            daily_report_enabled=True,
+        )
+        await state.set_state(Registration.waiting_for_calorie_target)
+        try:
+            await callback.message.delete()
+        except Exception:
+            pass
+
+        await callback.message.answer(i18n.get("onboarding-ask-target"))
+
+    await callback.answer()
+
+
+@router.message(Registration.waiting_for_calorie_target, F.text)
+async def process_onboarding_calorie_target(
+    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    try:
+        target = int(message.text)
+        if not (500 <= target <= 10000):
+            return await message.answer(i18n.get("error-calorie-target"))
+
+        await crud.update_user(
+            session=session,
+            user_id=message.from_user.id,
+            daily_calorie_target=target,
+        )
+        await state.clear()
+
+        # Send welcoming guide with the main menu reply keyboard
+        await message.answer(
+            i18n.get("how-to-use-text"),
+            reply_markup=main_menu(i18n),
+        )
+    except ValueError:
+        await message.answer(i18n.get("error-number"))

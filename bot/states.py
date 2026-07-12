@@ -6,6 +6,8 @@ class Registration(StatesGroup):
     waiting_for_isf = State()
     waiting_for_target_bg = State()
     waiting_for_insulin_type = State()
+    waiting_for_daily_report_onboarding = State()
+    waiting_for_calorie_target = State()
 
 
 class FoodAnalysis(StatesGroup):

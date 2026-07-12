@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Float, ForeignKey, String, func
+from sqlalchemy import BigInteger, DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 
@@ -18,6 +18,10 @@ class User(Base):
     target_bg: Mapped[float | None] = mapped_column(Float, nullable=True)
     language: Mapped[str] = mapped_column(String(5), server_default="en")
     diabetes_mode: Mapped[bool] = mapped_column(server_default="false", default=False)
+    daily_report_enabled: Mapped[bool] = mapped_column(
+        server_default="true", default=True
+    )
+    daily_calorie_target: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     meals: Mapped[list["MealLog"]] = relationship(

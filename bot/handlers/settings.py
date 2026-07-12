@@ -108,7 +108,10 @@ async def process_settings_submenu(
     builder.row(
         types.InlineKeyboardButton(
             text=i18n.get("btn-change-lang"), callback_data="change_lang"
-        )
+        ),
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-daily-reports"), callback_data="daily_reports_menu"
+        ),
     )
     builder.row(
         types.InlineKeyboardButton(
@@ -306,6 +309,13 @@ async def process_new_value(
             return await message.answer(i18n.get("error-range-isf"))
         elif field == "target_bg" and not (3.0 <= value <= 12.0):
             return await message.answer(i18n.get("error-range-target"))
+    elif field == "daily_calorie_target":
+        try:
+            value = int(value)
+            if not (500 <= value <= 10000):
+                return await message.answer(i18n.get("error-calorie-target"))
+        except ValueError:
+            return await message.answer(i18n.get("error-number"))
 
     await crud.update_user(session, message.from_user.id, **{field: value})
     await state.clear()
@@ -429,4 +439,90 @@ async def process_set_lang(
         )
 
     await callback.message.delete()
+    await callback.answer()
+
+
+@router.callback_query(F.data == "daily_reports_menu")
+async def process_daily_reports_menu(
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    await state.clear()
+    user = await crud.get_user(session, callback.from_user.id)
+    builder = InlineKeyboardBuilder()
+
+    if user.daily_report_enabled:
+        text = i18n.get(
+            "settings-daily-reports-enabled", target=user.daily_calorie_target or 2000
+        )
+        builder.row(
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-toggle-reports-off"),
+                callback_data="toggle_reports:off",
+            ),
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-edit-target"), callback_data="edit_calorie_target"
+            ),
+        )
+    else:
+        text = i18n.get("settings-daily-reports-disabled")
+        builder.row(
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-toggle-reports-on"),
+                callback_data="toggle_reports:on",
+            )
+        )
+
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-back"), callback_data="settings_submenu"
+        )
+    )
+
+    await callback.message.edit_text(
+        text=text,
+        reply_markup=builder.as_markup(),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("toggle_reports:"))
+async def process_toggle_reports(
+    callback: types.CallbackQuery, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    choice = callback.data.split(":")[1]
+    enabled = choice == "on"
+
+    user = await crud.get_user(session, callback.from_user.id)
+    target = user.daily_calorie_target
+    if enabled and target is None:
+        target = 2000
+
+    await crud.update_user(
+        session,
+        callback.from_user.id,
+        daily_report_enabled=enabled,
+        daily_calorie_target=target,
+    )
+    await callback.answer()
+    await process_daily_reports_menu(callback, session, state, i18n)
+
+
+@router.callback_query(F.data == "edit_calorie_target")
+async def process_edit_calorie_target(
+    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
+):
+    await state.set_state(SettingsState.waiting_for_value)
+    await state.update_data(edit_field="daily_calorie_target")
+
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-cancel"), callback_data="daily_reports_menu"
+        )
+    )
+
+    await callback.message.edit_text(
+        text=i18n.get("prompt-edit-target"),
+        reply_markup=builder.as_markup(),
+    )
     await callback.answer()

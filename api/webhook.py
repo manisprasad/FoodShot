@@ -15,6 +15,7 @@ from core.config import config
 from core.logger import setup_logging
 from core.redis_client import redis_client
 from db.database import SessionLocal
+from services.daily_report import run_daily_report_scheduler
 from services.keep_alive import ping_render
 from services.retention import run_retention_scheduler
 
@@ -42,12 +43,18 @@ async def lifespan(app: FastAPI):
         url=config.WEBHOOK_URL, secret_token=config.WEBHOOK_SECRET_TOKEN
     )
     scheduler_task = asyncio.create_task(run_retention_scheduler(bot))
+    daily_report_task = asyncio.create_task(run_daily_report_scheduler(bot))
     ping_task = asyncio.create_task(ping_render())
     yield
     scheduler_task.cancel()
+    daily_report_task.cancel()
     ping_task.cancel()
     try:
         await scheduler_task
+    except asyncio.CancelledError:
+        pass
+    try:
+        await daily_report_task
     except asyncio.CancelledError:
         pass
     try:
