@@ -9,6 +9,7 @@ from bot.states import Registration as DiabetesSetupState
 from bot.states import Settings as SettingsState
 from core.i18n import I18n
 from db import crud
+from services.daily_report import parse_time_string
 
 router = Router()
 
@@ -451,16 +452,28 @@ async def process_daily_reports_menu(
     builder = InlineKeyboardBuilder()
 
     if user.daily_report_enabled:
+        report_time_str = (
+            user.daily_report_time.strftime("%H:%M")
+            if user.daily_report_time
+            else "01:00"
+        )
         text = i18n.get(
-            "settings-daily-reports-enabled", target=user.daily_calorie_target or 2000
+            "settings-daily-reports-enabled",
+            target=user.daily_calorie_target or 2000,
+            time=report_time_str,
         )
         builder.row(
             types.InlineKeyboardButton(
                 text=i18n.get("btn-toggle-reports-off"),
                 callback_data="toggle_reports:off",
-            ),
+            )
+        )
+        builder.row(
             types.InlineKeyboardButton(
                 text=i18n.get("btn-edit-target"), callback_data="edit_calorie_target"
+            ),
+            types.InlineKeyboardButton(
+                text=i18n.get("btn-edit-time"), callback_data="edit_report_time"
             ),
         )
     else:
@@ -526,3 +539,43 @@ async def process_edit_calorie_target(
         reply_markup=builder.as_markup(),
     )
     await callback.answer()
+
+
+@router.callback_query(F.data == "edit_report_time")
+async def process_edit_report_time(
+    callback: types.CallbackQuery, state: FSMContext, i18n: I18n
+):
+    await state.set_state(SettingsState.waiting_for_report_time)
+
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        types.InlineKeyboardButton(
+            text=i18n.get("btn-cancel"), callback_data="daily_reports_menu"
+        )
+    )
+
+    await callback.message.edit_text(
+        text=i18n.get("prompt-edit-time"),
+        reply_markup=builder.as_markup(),
+    )
+    await callback.answer()
+
+
+@router.message(SettingsState.waiting_for_report_time, F.text)
+async def process_settings_report_time(
+    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    parsed_time = parse_time_string(message.text)
+    if not parsed_time:
+        return await message.answer(i18n.get("error-time-format"))
+
+    await crud.update_user(session, message.from_user.id, daily_report_time=parsed_time)
+    await state.clear()
+
+    try:
+        await message.delete()
+    except Exception:
+        pass
+
+    await message.answer(i18n.get("profile-updated"))
+    await cmd_settings(message, session, state, i18n)

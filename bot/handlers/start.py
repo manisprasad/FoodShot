@@ -9,6 +9,7 @@ from bot.keyboards import main_menu
 from bot.states import Registration
 from core.i18n import I18n
 from db import crud
+from services.daily_report import parse_time_string
 
 router = Router()
 
@@ -145,12 +146,29 @@ async def process_onboarding_calorie_target(
             user_id=message.from_user.id,
             daily_calorie_target=target,
         )
-        await state.clear()
-
-        # Send welcoming guide with the main menu reply keyboard
-        await message.answer(
-            i18n.get("how-to-use-text"),
-            reply_markup=main_menu(i18n),
-        )
+        await state.set_state(Registration.waiting_for_report_time)
+        await message.answer(i18n.get("onboarding-ask-time"))
     except ValueError:
         await message.answer(i18n.get("error-number"))
+
+
+@router.message(Registration.waiting_for_report_time, F.text)
+async def process_onboarding_report_time(
+    message: types.Message, session: AsyncSession, state: FSMContext, i18n: I18n
+):
+    parsed_time = parse_time_string(message.text)
+    if not parsed_time:
+        return await message.answer(i18n.get("error-time-format"))
+
+    await crud.update_user(
+        session=session,
+        user_id=message.from_user.id,
+        daily_report_time=parsed_time,
+    )
+    await state.clear()
+
+    # Send welcoming guide with the main menu reply keyboard
+    await message.answer(
+        i18n.get("how-to-use-text"),
+        reply_markup=main_menu(i18n),
+    )

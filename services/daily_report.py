@@ -1,4 +1,5 @@
 import asyncio
+import re
 from datetime import datetime, time, timedelta
 
 from aiogram import Bot
@@ -9,33 +10,65 @@ from core.redis_client import redis_client
 from db import crud
 from db.database import SessionLocal
 
-REDIS_REPORT_LOCK_KEY = "last_daily_report_date"
+
+def parse_time_string(text: str) -> time | None:
+    text = text.strip()
+
+    # Normalize separators (. , ; / spaces) to :
+    normalized = re.sub(r"[\s.,;/]+", ":", text)
+
+    # Handle "1200" format
+    if len(normalized) == 4 and normalized.isdigit():
+        normalized = f"{normalized[:2]}:{normalized[2:]}"
+    # Handle "12" format (hour only)
+    elif len(normalized) <= 2 and normalized.isdigit():
+        normalized = f"{normalized}:00"
+
+    match = re.match(r"^(\d{1,2}):(\d{2})$", normalized)
+    if match:
+        h, m = int(match.group(1)), int(match.group(2))
+        if 0 <= h <= 23 and 0 <= m <= 59:
+            return time(h, m)
+    return None
 
 
 async def perform_daily_reports(bot: Bot):
     now = datetime.now()
-    # Only run after 1:00 AM
-    if now.hour < 1:
-        return
-
-    today_str = now.date().strftime("%Y-%m-%d")
-
-    last_checked = await redis_client.get(REDIS_REPORT_LOCK_KEY)
-    if last_checked and last_checked == today_str:
-        logger.debug("Daily progress reports already sent today (%s)", today_str)
-        return
-
-    logger.info("Starting daily progress reports for %s...", today_str)
-
-    yesterday = now.date() - timedelta(days=1)
-    yesterday_str = yesterday.strftime("%Y-%m-%d")
-    start_time = datetime.combine(yesterday, time.min)
-    end_time = datetime.combine(yesterday, time.max)
+    now_time = now.time()
 
     async with SessionLocal() as session:
         try:
             users = await crud.get_users_for_daily_report(session)
             for user in users:
+                report_time = user.daily_report_time or time(1, 0)
+
+                # Skip if it is not yet time for this user's report
+                if now_time < report_time:
+                    continue
+
+                # Determine the report date
+                if report_time.hour < 4:
+                    report_date = now.date() - timedelta(days=1)
+                else:
+                    report_date = now.date()
+
+                report_date_str = report_date.strftime("%Y-%m-%d")
+                lock_key = f"daily_report_sent:{user.id}:{report_date_str}"
+
+                # Check if already sent
+                already_sent = await redis_client.get(lock_key)
+                if already_sent:
+                    continue
+
+                logger.info(
+                    "Sending daily progress report to user %s for date %s...",
+                    user.id,
+                    report_date_str,
+                )
+
+                start_time = datetime.combine(report_date, time.min)
+                end_time = datetime.combine(report_date, time.max)
+
                 logs = await crud.get_meal_logs_in_range(
                     session, user.id, start_time, end_time
                 )
@@ -45,7 +78,7 @@ async def perform_daily_reports(bot: Bot):
                 diff = total_kcal - target
                 i18n = I18n(user.language)
 
-                header = i18n.get("daily-report-header", date=yesterday_str)
+                header = i18n.get("daily-report-header", date=report_date_str)
                 if diff > 100:
                     body = i18n.get(
                         "daily-report-surplus",
@@ -70,18 +103,14 @@ async def perform_daily_reports(bot: Bot):
                 message_text = f"{header}{body}"
                 try:
                     await bot.send_message(chat_id=user.id, text=message_text)
+                    # Mark as sent for this user for this day (expire key after 2 days)
+                    await redis_client.set(lock_key, "sent", ex=172800)
                 except Exception as e:
                     logger.warning(
                         "Failed to send daily report to user %s: %s", user.id, e
                     )
-
-            # Mark as checked
-            await redis_client.set(REDIS_REPORT_LOCK_KEY, today_str)
-            logger.info("Daily progress reports completed for %s.", today_str)
         except Exception as e:
             logger.exception("Error during daily progress reports: %s", e)
-            # Do not rollback the session here as the CRUD functions commit/flush individually,
-            # but we catch exceptions per loop.
 
 
 async def run_daily_report_scheduler(bot: Bot):

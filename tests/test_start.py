@@ -176,6 +176,33 @@ async def test_process_onboarding_calorie_target_valid():
             user_id=12345,
             daily_calorie_target=2200,
         )
+        state.set_state.assert_called_once_with(Registration.waiting_for_report_time)
+        message.answer.assert_called_once_with(
+            "⏰ *Час отримання звітів*\n\nВведіть бажаний час щоденного звіту в 24-годинному форматі (наприклад, *12:00* або *21:30*):"
+        )
+
+
+@pytest.mark.asyncio
+async def test_process_onboarding_report_time_valid():
+    from datetime import time
+
+    from bot.handlers.start import process_onboarding_report_time
+
+    message = AsyncMock()
+    message.text = "21:30"
+    message.from_user.id = 12345
+    session = AsyncMock()
+    state = AsyncMock(spec=FSMContext)
+    i18n = I18n("uk")
+
+    with patch("bot.handlers.start.crud.update_user") as mock_update:
+        await process_onboarding_report_time(message, session, state, i18n)
+
+        mock_update.assert_called_once_with(
+            session=session,
+            user_id=12345,
+            daily_report_time=time(21, 30),
+        )
         state.clear.assert_called_once()
         message.answer.assert_called_once()
         assert "Як користуватися FoodShot:" in message.answer.call_args[0][0]

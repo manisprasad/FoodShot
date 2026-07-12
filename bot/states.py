@@ -8,6 +8,7 @@ class Registration(StatesGroup):
     waiting_for_insulin_type = State()
     waiting_for_daily_report_onboarding = State()
     waiting_for_calorie_target = State()
+    waiting_for_report_time = State()
 
 
 class FoodAnalysis(StatesGroup):
@@ -18,6 +19,7 @@ class FoodAnalysis(StatesGroup):
 class Settings(StatesGroup):
     waiting_for_value = State()
     waiting_for_delete_confirm = State()
+    waiting_for_report_time = State()
 
 
 class HistoryState(StatesGroup):
