@@ -105,3 +105,8 @@ total      = carb_dose + correction
 - **Asyncpg URL Validator**: Standard connection strings containing `sslmode` (e.g. from Neon) must be stripped of the `sslmode` query parameter before being passed to `asyncpg`.
 - **Dynamic SSL Configuration**: When connecting to managed databases like Neon over the internet, `asyncpg` requires SSL. Ensure the async engine is configured to dynamically enable SSL (e.g. `connect_args={"ssl": True}`) if the database host is remote (like `neon.tech`).
 - **Alembic DDL Verification**: Never deploy or run migrations without verifying that the `upgrade()` method in the migration file contains the actual DDL commands (e.g. `op.create_table`) rather than a blank `pass`.
+
+## Obsidian Integration
+- **Obsidian Brain Vault**: The user frequently documents architectural discussions, design decisions, and guidelines in their Obsidian vault located at `/Users/soroqn/me/obsidian/brain/`.
+- **Knowledge Syncing**: When discussing design choices, technical trade-offs, or best practices, proactively offer to document these decisions or write structured markdown notes directly to the Obsidian vault to keep their knowledge base updated.
+

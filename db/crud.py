@@ -126,3 +126,13 @@ async def delete_meal_log(session: AsyncSession, meal_id: int) -> bool:
         await session.flush()
         return True
     return False
+
+
+async def get_users_for_daily_report(session: AsyncSession) -> list[User]:
+    result = await session.execute(
+        select(User).where(
+            User.daily_report_enabled.is_(True),
+            User.daily_calorie_target.is_not(None),
+        )
+    )
+    return list(result.scalars().all())
