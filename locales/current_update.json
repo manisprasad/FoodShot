@@ -1,0 +1,16 @@
+{
+  "text_en": "🚀 What's New:\n- Flexible daily progress report times.\n- Safe account deletion via /danger command.",
+  "text_uk": "🚀 Що нового:\n- Додано гнучкий час щоденних звітів.\n- Безпечне видалення акаунту через команду /danger.",
+  "buttons": [
+    {
+      "text_en": "⏰ Set Report Time",
+      "text_uk": "⏰ Налаштувати час",
+      "callback_data": "edit_report_time"
+    },
+    {
+      "text_en": "⚙️ More Options",
+      "text_uk": "⚙️ Більше опцій",
+      "callback_data": "back_to_settings"
+    }
+  ]
+}

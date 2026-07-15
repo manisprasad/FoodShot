@@ -53,6 +53,11 @@ tasks:
     cmds:
       - docker-compose logs -f
 
+  broadcast:
+    desc: Broadcast release updates to all users from locales/current_update.json
+    cmds:
+      - poetry run python scripts/broadcast_update.py
+
   lint:
     desc: Run Ruff linter and automatically fix issues
     cmds:
