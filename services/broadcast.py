@@ -9,25 +9,27 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from loguru import logger
 from sqlalchemy import select
 
+from core.i18n import I18n
 from db.database import SessionLocal
 from db.models import User
 
 
-async def run_broadcast(bot: Bot, admin_chat_id: int):
+async def run_broadcast(bot: Bot, admin_chat_id: int, i18n: I18n):
     json_path = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "../locales/current_update.json")
     )
     if not os.path.exists(json_path):
-        await bot.send_message(
-            admin_chat_id, "❌ Error: `locales/current_update.json` not found."
-        )
+        await bot.send_message(admin_chat_id, i18n.get("admin-broadcast-error-missing"))
         return
 
     with open(json_path, encoding="utf-8") as f:
         try:
             update_data = json.load(f)
         except Exception as e:
-            await bot.send_message(admin_chat_id, f"❌ Error parsing JSON: {e}")
+            await bot.send_message(
+                admin_chat_id,
+                i18n.get("admin-broadcast-error-json", error=str(e)),
+            )
             return
 
     async with SessionLocal() as session:
@@ -35,11 +37,17 @@ async def run_broadcast(bot: Bot, admin_chat_id: int):
         users = result.scalars().all()
 
     if not users:
-        await bot.send_message(admin_chat_id, "❌ No users found in database.")
+        await bot.send_message(
+            admin_chat_id,
+            "❌ No users found in database."
+            if i18n.lang == "en"
+            else "❌ Не знайдено користувачів у базі даних.",
+        )
         return
 
     await bot.send_message(
-        admin_chat_id, f"⏳ Starting broadcast to {len(users)} users..."
+        admin_chat_id,
+        i18n.get("admin-broadcast-started", count=len(users)),
     )
 
     success_count = 0
@@ -80,10 +88,10 @@ async def run_broadcast(bot: Bot, admin_chat_id: int):
 
         await asyncio.sleep(0.05)
 
-    summary = (
-        f"✅ *Broadcast Finished!*\n\n"
-        f"• Sent: {success_count}\n"
-        f"• Blocked: {forbidden_count}\n"
-        f"• Failed: {fail_count}"
+    summary = i18n.get(
+        "admin-broadcast-summary",
+        success=success_count,
+        blocked=forbidden_count,
+        failed=fail_count,
     )
     await bot.send_message(admin_chat_id, summary)

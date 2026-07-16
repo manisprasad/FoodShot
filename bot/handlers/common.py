@@ -15,74 +15,77 @@ router = Router()
 
 
 @router.message(Command("admin"))
-async def cmd_admin(message: types.Message):
+async def cmd_admin(message: types.Message, i18n: I18n):
     if not config.ADMIN_ID or message.from_user.id != config.ADMIN_ID:
         return
 
     builder = InlineKeyboardBuilder()
     builder.add(
         InlineKeyboardButton(
-            text="📢 Разослать обновление",
+            text=i18n.get("btn-admin-broadcast"),
             callback_data="admin_confirm_broadcast",
         )
     )
 
     await message.answer(
-        "🛠 *Панель администратора FoodShot*\n\nВыберите нужное действие:",
+        i18n.get("admin-menu-header"),
         reply_markup=builder.as_markup(),
     )
 
 
 @router.callback_query(lambda c: c.data == "back_to_admin")
-async def process_back_to_admin(callback: types.CallbackQuery):
+async def process_back_to_admin(callback: types.CallbackQuery, i18n: I18n):
     if not config.ADMIN_ID or callback.from_user.id != config.ADMIN_ID:
         return
 
     builder = InlineKeyboardBuilder()
     builder.add(
         InlineKeyboardButton(
-            text="📢 Разослать обновление",
+            text=i18n.get("btn-admin-broadcast"),
             callback_data="admin_confirm_broadcast",
         )
     )
 
     await callback.message.edit_text(
-        "🛠 *Панель администратора FoodShot*\n\nВыберите нужное действие:",
+        i18n.get("admin-menu-header"),
         reply_markup=builder.as_markup(),
     )
 
 
 @router.callback_query(lambda c: c.data == "admin_confirm_broadcast")
-async def process_confirm_broadcast(callback: types.CallbackQuery):
+async def process_confirm_broadcast(callback: types.CallbackQuery, i18n: I18n):
     if not config.ADMIN_ID or callback.from_user.id != config.ADMIN_ID:
         return
 
     builder = InlineKeyboardBuilder()
     builder.add(
         InlineKeyboardButton(
-            text="✅ Да, запустить", callback_data="admin_run_broadcast"
+            text=i18n.get("btn-admin-confirm-yes"),
+            callback_data="admin_run_broadcast",
         )
     )
-    builder.add(InlineKeyboardButton(text="❌ Отмена", callback_data="back_to_admin"))
+    builder.add(
+        InlineKeyboardButton(
+            text=i18n.get("btn-admin-confirm-no"), callback_data="back_to_admin"
+        )
+    )
     builder.adjust(2)
 
     await callback.message.edit_text(
-        "❓ *Подтверждение рассылки*\n\nВы уверены, что хотите запустить рассылку обновлений для всех пользователей из файла `locales/current_update.json`?",
+        i18n.get("admin-confirm-header"),
         reply_markup=builder.as_markup(),
     )
 
 
 @router.callback_query(lambda c: c.data == "admin_run_broadcast")
-async def process_run_broadcast(callback: types.CallbackQuery, bot: Bot):
+async def process_run_broadcast(callback: types.CallbackQuery, bot: Bot, i18n: I18n):
     if not config.ADMIN_ID or callback.from_user.id != config.ADMIN_ID:
         return
 
-    await callback.message.edit_text(
-        "⏳ *Рассылка запущена в фоновом режиме...*\nПо окончании процесса вы получите отчет."
-    )
+    await callback.message.edit_text(i18n.get("admin-run-success"))
 
     # Run the broadcast in the background to avoid blocking the Telegram webhook response
-    asyncio.create_task(run_broadcast(bot, callback.message.chat.id))
+    asyncio.create_task(run_broadcast(bot, callback.message.chat.id, i18n))
 
 
 @router.errors()
