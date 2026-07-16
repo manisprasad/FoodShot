@@ -1,12 +1,25 @@
-from aiogram import Router, types
+import asyncio
+
+from aiogram import Bot, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import ErrorEvent
 from loguru import logger
 
+from core.config import config
 from core.i18n import I18n
+from services.broadcast import run_broadcast
 
 router = Router()
+
+
+@router.message(Command("broadcast"))
+async def cmd_broadcast(message: types.Message, bot: Bot):
+    if not config.ADMIN_ID or message.from_user.id != config.ADMIN_ID:
+        return
+
+    # Run the broadcast in the background to avoid blocking the Telegram webhook response
+    asyncio.create_task(run_broadcast(bot, message.chat.id))
 
 
 @router.errors()
