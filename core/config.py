@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     WEBHOOK_URL: str
     WEBHOOK_SECRET_TOKEN: str
     CLOUDFLARE_TUNNEL_TOKEN: str | None = None
+    ADMIN_ID: int | None = None
     PORT: int = 8000
 
     @field_validator("DATABASE_URL", mode="before")
