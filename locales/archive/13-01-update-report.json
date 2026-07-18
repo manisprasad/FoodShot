@@ -1,0 +1,11 @@
+{
+  "text_en": "🚀 *Update 13.1*\n\nWhat's new:\n• Added **Daily Progress Reports** with a customizable daily calorie target and delivery time to easily track your goals.\n• Added the `/danger` command to access account security and deletion settings.",
+  "text_uk": "🚀 *Оновлення 13.1*\n\nЩо нового:\n• Додано **Щоденні звіти прогресу** з налаштуванням цілі калорій та зручного часу отримання звітів для контролю цілей.\n• Додано команду `/danger` для доступу до налаштувань безпеки та видалення акаунту.",
+  "buttons": [
+    {
+      "text_en": "📊 Daily Reports Settings",
+      "text_uk": "📊 Налаштувати звіти",
+      "callback_data": "daily_reports_menu"
+    }
+  ]
+}
