@@ -35,6 +35,8 @@ class User(Base):
     daily_report_time: Mapped[time | None] = mapped_column(
         Time, nullable=True, server_default=text("'01:00:00'")
     )
+    is_premium: Mapped[bool] = mapped_column(server_default="false", default=False)
+    premium_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
     meals: Mapped[list["MealLog"]] = relationship(

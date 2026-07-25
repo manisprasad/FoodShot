@@ -1,7 +1,9 @@
 import base64
+import io
 
 from loguru import logger
 from openai import AsyncOpenAI
+from PIL import Image
 from pydantic import BaseModel
 
 from core.config import config
@@ -21,29 +23,55 @@ class FoodRecognitionResult(BaseModel):
     dish_name_en: str
     weight_g: int
     confidence: str
+    is_complex_meal: bool = False
+
+
+def compress_image_for_vision(
+    image_bytes: bytes, max_dim: int = 1024, quality: int = 85
+) -> bytes:
+    """Resize image preserving aspect ratio to max_dim and compress JPEG quality."""
+    try:
+        with Image.open(io.BytesIO(image_bytes)) as img:
+            img = img.convert("RGB")
+            width, height = img.size
+            if max(width, height) > max_dim:
+                if width > height:
+                    new_width = max_dim
+                    new_height = int(height * (max_dim / width))
+                else:
+                    new_height = max_dim
+                    new_width = int(width * (max_dim / height))
+                img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+            output = io.BytesIO()
+            img.save(output, format="JPEG", quality=quality, optimize=True)
+            return output.getvalue()
+    except Exception as e:
+        logger.warning(f"Image compression failed, using original bytes: {e}")
+        return image_bytes
 
 
 async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict | None:
-    base64_image = base64.b64encode(image_bytes).decode("utf-8")
+    compressed_bytes = compress_image_for_vision(image_bytes)
+    base64_image = base64.b64encode(compressed_bytes).decode("utf-8")
 
-    try:
+    prompt_text = (
+        f"Identify the food in this image. "
+        f"Reply with ONLY a JSON object with these fields: "
+        f"dish_name (string, in {language} language), "
+        f"dish_name_en (string, always in English), "
+        f"weight_g (integer, estimated grams), "
+        f"confidence (string: high, medium, or low), "
+        f"is_complex_meal (boolean: true if plate contains 3+ separate unmixed components or ambiguous sides, false otherwise)."
+    )
+
+    async def _call_model(model_name: str) -> FoodRecognitionResult | None:
         response = await client.beta.chat.completions.parse(
-            model="gpt-4o",
+            model=model_name,
             messages=[
                 {
                     "role": "user",
                     "content": [
-                        {
-                            "type": "text",
-                            "text": (
-                                f"Identify the food in this image. "
-                                f"Reply with ONLY a JSON object with these fields: "
-                                f"dish_name (string, in {language} language), "
-                                f"dish_name_en (string, always in English), "
-                                f"weight_g (integer, estimated grams), "
-                                f"confidence (string: high, medium, or low)."
-                            ),
-                        },
+                        {"type": "text", "text": prompt_text},
                         {
                             "type": "image_url",
                             "image_url": {
@@ -55,12 +83,25 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
             ],
             response_format=FoodRecognitionResult,
         )
+        return response.choices[0].message.parsed
 
-        parsed_result = response.choices[0].message.parsed
-        if not parsed_result:
+    try:
+        # Tier 1: Fast & low-cost model (gpt-4o-mini)
+        result = await _call_model(config.DEFAULT_VISION_MODEL)
+        if not result:
             return None
 
-        return parsed_result.model_dump()
+        # Tier 2 Escalation: If low confidence or complex multi-component meal, escalate to gpt-4o
+        if result.confidence == "low" or result.is_complex_meal:
+            logger.info(
+                f"Dynamic Cascade Triggered (confidence={result.confidence}, is_complex={result.is_complex_meal}). "
+                f"Escalating from {config.DEFAULT_VISION_MODEL} to {config.ESCALATION_VISION_MODEL}..."
+            )
+            upgraded_result = await _call_model(config.ESCALATION_VISION_MODEL)
+            if upgraded_result:
+                result = upgraded_result
+
+        return result.model_dump()
 
     except Exception as e:
         logger.error(f"Error during vision analysis: {e}")

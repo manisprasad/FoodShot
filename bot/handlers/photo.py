@@ -1,13 +1,15 @@
 from aiogram import Bot, F, Router, types
 from aiogram.fsm.context import FSMContext
 from loguru import logger
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import weight_adjust_keyboard
 from bot.states import FoodAnalysis
+from core.config import config
 from core.i18n import I18n
 from db import crud
-from services import calc, nutrition, vision
+from services import calc, freemium, nutrition, security, vision
 
 router = Router()
 
@@ -29,6 +31,7 @@ async def handle_photo(
     message: types.Message,
     bot: Bot,
     session: AsyncSession,
+    redis: Redis,
     state: FSMContext,
     i18n: I18n,
 ):
@@ -36,6 +39,27 @@ async def handle_photo(
     user = await crud.get_user(session, message.from_user.id)
     if not user:
         return await message.answer("Please /start registration first.")
+
+    is_admin = user.id == config.ADMIN_ID if config.ADMIN_ID else False
+
+    # 1. Security burst protection check
+    sec_check = await security.check_photo_security_limits(
+        redis, user.id, is_admin=is_admin
+    )
+    if not sec_check.allowed:
+        return await message.answer(
+            f"⚠️ Too many requests. Please wait {sec_check.retry_after} seconds before sending another photo."
+        )
+
+    # 2. Freemium daily quota check
+    quota_check = await freemium.check_daily_freemium_quota(
+        redis, user, is_admin=is_admin
+    )
+    if not quota_check.allowed:
+        return await message.answer(
+            f"⭐️ You have reached your daily limit of free photo analyses ({freemium.FREE_TIER_DAILY_LIMIT}/day).\n\n"
+            f"Upgrade to FoodShot Premium for unlimited AI meal logging!"
+        )
 
     status_msg = await message.answer(i18n.get("analyzing"))
 
