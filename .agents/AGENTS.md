@@ -107,6 +107,13 @@ total      = carb_dose + correction
 - **Alembic DDL Verification**: Never deploy or run migrations without verifying that the `upgrade()` method in the migration file contains the actual DDL commands (e.g. `op.create_table`) rather than a blank `pass`.
 
 ## Obsidian Integration
-- **Obsidian Brain Vault**: The user frequently documents architectural discussions, design decisions, and guidelines in their Obsidian vault located at `/Users/soroqn/me/obsidian/brain/`.
-- **Knowledge Syncing**: When discussing design choices, technical trade-offs, or best practices, proactively offer to document these decisions or write structured markdown notes directly to the Obsidian vault to keep their knowledge base updated.
+- **Obsidian Vault Path**: The user's Obsidian vault is located at `/Users/soroqn/me/obsidian`.
+- **Vault Structure**:
+  - `01 - Journal/` — Daily logs, personal reflections, career profile.
+  - `02 - Ideas/` — Feature ideas and startup incubator notes.
+  - `03 - Knowledge/Architecture & Decisions/` — ADRs (Architecture Decision Records), trade-offs, and technical solutions.
+  - `04 - Future/` — Long-term goals, roadmaps, and career planning.
+  - `05 - Projects/` — Project-specific notes and technical documentation (e.g. `05 - Projects/FoodShot/`).
+- **Knowledge & Backlog Syncing**: Always offer to document technical trade-offs ("why X was chosen over Y"), complex bugs solved, architecture decisions, and roadmap plans directly into the appropriate Obsidian vault directory so the user's personal knowledge base stays updated.
+
 
