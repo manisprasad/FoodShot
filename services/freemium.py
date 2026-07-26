@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 
+from loguru import logger
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.redis_client import redis_client
 from db import crud
 from db.models import User
 
@@ -23,11 +25,9 @@ class FreemiumQuotaResult:
 
 
 async def check_daily_freemium_quota(
-    redis: Redis, user: User, is_admin: bool = False
+    redis: Redis = redis_client, user: User = None, is_admin: bool = False
 ) -> FreemiumQuotaResult:
     """Check and increment daily photo analysis quota for user."""
-
-    # 1. Admin or active premium users have unlimited quota
     now = _get_utc_now()
     is_premium_active = user.is_premium and (
         user.premium_until is None or user.premium_until > now
@@ -41,30 +41,38 @@ async def check_daily_freemium_quota(
             daily_limit=999999,
         )
 
-    # 2. Track daily usage in Redis
-    today_str = now.strftime("%Y-%m-%d")
-    quota_key = f"quota:freemium:{user.id}:{today_str}"
+    try:
+        today_str = now.strftime("%Y-%m-%d")
+        quota_key = f"quota:freemium:{user.id}:{today_str}"
 
-    pipe = redis.pipeline()
-    pipe.incr(quota_key)
-    pipe.expire(quota_key, 86400)  # TTL 24h
-    results = await pipe.execute()
-    used_count = results[0]
+        pipe = redis.pipeline()
+        pipe.incr(quota_key)
+        pipe.expire(quota_key, 86400)
+        results = await pipe.execute()
+        used_count = int(results[0])
 
-    if used_count > FREE_TIER_DAILY_LIMIT:
+        if used_count > FREE_TIER_DAILY_LIMIT:
+            return FreemiumQuotaResult(
+                allowed=False,
+                is_premium=False,
+                used_today=used_count,
+                daily_limit=FREE_TIER_DAILY_LIMIT,
+            )
+
         return FreemiumQuotaResult(
-            allowed=False,
+            allowed=True,
             is_premium=False,
             used_today=used_count,
             daily_limit=FREE_TIER_DAILY_LIMIT,
         )
-
-    return FreemiumQuotaResult(
-        allowed=True,
-        is_premium=False,
-        used_today=used_count,
-        daily_limit=FREE_TIER_DAILY_LIMIT,
-    )
+    except Exception as e:
+        logger.warning(f"Redis freemium check failed, bypassing: {e}")
+        return FreemiumQuotaResult(
+            allowed=True,
+            is_premium=False,
+            used_today=1,
+            daily_limit=FREE_TIER_DAILY_LIMIT,
+        )
 
 
 async def grant_user_premium(

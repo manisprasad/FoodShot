@@ -1,7 +1,6 @@
 from aiogram import Bot, F, Router, types
 from aiogram.fsm.context import FSMContext
 from loguru import logger
-from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.keyboards import weight_adjust_keyboard
@@ -31,7 +30,6 @@ async def handle_photo(
     message: types.Message,
     bot: Bot,
     session: AsyncSession,
-    redis: Redis,
     state: FSMContext,
     i18n: I18n,
 ):
@@ -44,7 +42,7 @@ async def handle_photo(
 
     # 1. Security burst protection check
     sec_check = await security.check_photo_security_limits(
-        redis, user.id, is_admin=is_admin
+        user_id=user.id, is_admin=is_admin
     )
     if not sec_check.allowed:
         return await message.answer(
@@ -53,7 +51,7 @@ async def handle_photo(
 
     # 2. Freemium daily quota check
     quota_check = await freemium.check_daily_freemium_quota(
-        redis, user, is_admin=is_admin
+        user=user, is_admin=is_admin
     )
     if not quota_check.allowed:
         return await message.answer(

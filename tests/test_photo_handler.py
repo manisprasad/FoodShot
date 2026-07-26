@@ -18,7 +18,6 @@ async def test_handle_photo_zero_weight():
 
     bot = AsyncMock()
     session = AsyncMock()
-    redis = AsyncMock()
     state = AsyncMock()
     i18n = I18n("en")
 
@@ -48,7 +47,7 @@ async def test_handle_photo_zero_weight():
             "confidence": "high",
         }
 
-        await handle_photo(message, bot, session, redis, state, i18n)
+        await handle_photo(message, bot, session, state, i18n)
 
         # Should log and edit status message to not-found
         status_msg.edit_text.assert_called_once_with(i18n.get("not-found"))
