@@ -34,6 +34,8 @@ class SimpleI18nMiddleware(BaseMiddleware):
                     )
             except Exception as e:
                 logger.exception("Failed to get user in i18n middleware", exc_info=e)
+                if session:
+                    await session.rollback()
                 lang = (
                     user.language_code
                     if getattr(user, "language_code", "") in ["uk", "en"]
