@@ -73,7 +73,14 @@ async def run_async_migrations() -> None:
     """
 
     connect_args = {}
-    if "neon.tech" in app_config.DATABASE_URL:
+    db_url = app_config.DATABASE_URL.lower()
+    is_local_host = any(
+        host in db_url for host in ("localhost", "127.0.0.1", "@db:", "@postgres:")
+    )
+    if not is_local_host or any(
+        provider in db_url
+        for provider in ("neon.tech", "supabase.co", "supabase.com", "supabase.net")
+    ):
         connect_args["ssl"] = True
 
     connectable = async_engine_from_config(
