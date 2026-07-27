@@ -65,7 +65,7 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
     )
 
     async def _call_model(
-        model_name: str,
+        model_name: str, detail: str = "low"
     ) -> tuple[FoodRecognitionResult | None, int]:
         response = await client.beta.chat.completions.parse(
             model=model_name,
@@ -77,7 +77,8 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
                         {
                             "type": "image_url",
                             "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}"
+                                "url": f"data:image/jpeg;base64,{base64_image}",
+                                "detail": detail,
                             },
                         },
                     ],
@@ -89,20 +90,22 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
         return response.choices[0].message.parsed, tokens
 
     try:
-        # Tier 1: Fast & low-cost model (gpt-4o-mini)
-        result, tokens_used = await _call_model(config.DEFAULT_VISION_MODEL)
+        # Tier 1: Fast & low-cost model (gpt-4o-mini with low detail ~85 image tokens)
+        result, tokens_used = await _call_model(
+            config.DEFAULT_VISION_MODEL, detail="low"
+        )
         if not result:
             return None
         model_used = config.DEFAULT_VISION_MODEL
 
-        # Tier 2 Escalation: If low confidence or complex multi-component meal, escalate to gpt-4o
+        # Tier 2 Escalation: If low confidence or complex multi-component meal, escalate to gpt-4o (high detail)
         if result.confidence == "low" or result.is_complex_meal:
             logger.info(
                 f"Dynamic Cascade Triggered (confidence={result.confidence}, is_complex={result.is_complex_meal}). "
                 f"Escalating from {config.DEFAULT_VISION_MODEL} to {config.ESCALATION_VISION_MODEL}..."
             )
             upgraded_result, upgraded_tokens = await _call_model(
-                config.ESCALATION_VISION_MODEL
+                config.ESCALATION_VISION_MODEL, detail="auto"
             )
             if upgraded_result:
                 result = upgraded_result
