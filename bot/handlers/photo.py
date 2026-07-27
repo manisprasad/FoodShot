@@ -7,6 +7,7 @@ from bot.keyboards import weight_adjust_keyboard
 from bot.states import FoodAnalysis
 from core.config import config
 from core.i18n import I18n
+from core.redis_client import redis_client
 from db import crud
 from services import calc, freemium, nutrition, security, vision
 
@@ -14,7 +15,7 @@ router = Router()
 
 
 def _ask_bg_text(
-    i18n: I18n, data: dict, diabetes_mode: bool, is_admin: bool = False
+    i18n: I18n, data: dict, diabetes_mode: bool, show_debug: bool = False
 ) -> str:
     key = "ask-bg" if diabetes_mode else "ask-weight"
     text = i18n.get(
@@ -25,7 +26,7 @@ def _ask_bg_text(
         kcal=int(data["kcal_per_g"] * data["weight_g"]),
         confidence=i18n.get(f"confidence-{data['confidence']}"),
     )
-    if is_admin and "model_used" in data and "total_tokens" in data:
+    if show_debug and "model_used" in data and "total_tokens" in data:
         text += f"\n\n{data['model_used']}, {data['total_tokens']} tokens"
     return text
 
@@ -123,8 +124,10 @@ async def handle_photo(
     await state.update_data(**state_data)
     await state.set_state(FoodAnalysis.waiting_for_bg)
 
+    show_debug = (await redis_client.get("admin:debug_mode")) == "1"
+
     await status_msg.edit_text(
-        _ask_bg_text(i18n, state_data, user.diabetes_mode, is_admin=is_admin),
+        _ask_bg_text(i18n, state_data, user.diabetes_mode, show_debug=show_debug),
         reply_markup=weight_adjust_keyboard(weight_g, i18n, last_bg),
     )
 
@@ -212,10 +215,10 @@ async def process_weight_adjust(
     data["weight_g"] = new_weight
 
     user = await crud.get_user(session, callback.from_user.id)
-    is_admin = user.id == config.ADMIN_ID if config.ADMIN_ID else False
+    show_debug = (await redis_client.get("admin:debug_mode")) == "1"
 
     await callback.message.edit_text(
-        _ask_bg_text(i18n, data, user.diabetes_mode, is_admin=is_admin),
+        _ask_bg_text(i18n, data, user.diabetes_mode, show_debug=show_debug),
         reply_markup=weight_adjust_keyboard(new_weight, i18n, data.get("last_bg")),
     )
     await callback.answer()
