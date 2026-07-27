@@ -55,7 +55,8 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
     base64_image = base64.b64encode(compressed_bytes).decode("utf-8")
 
     prompt_text = (
-        f"Identify the food in this image. "
+        f"Identify the food in this image with high precision. "
+        f"Be explicit if bread, buns, or sides are included (e.g. 'hot dog in a bun' vs 'sausage/frankfurter'). "
         f"Reply with ONLY a JSON object with these fields: "
         f"dish_name (string, in {language} language), "
         f"dish_name_en (string, always in English), "
@@ -65,7 +66,7 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
     )
 
     async def _call_model(
-        model_name: str, detail: str = "low"
+        model_name: str, detail: str = "auto"
     ) -> tuple[FoodRecognitionResult | None, int]:
         response = await client.beta.chat.completions.parse(
             model=model_name,
@@ -90,9 +91,9 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
         return response.choices[0].message.parsed, tokens
 
     try:
-        # Tier 1: Fast & low-cost model (gpt-4o-mini with low detail ~85 image tokens)
+        # Tier 1: Fast & low-cost model (gpt-4o-mini with auto detail)
         result, tokens_used = await _call_model(
-            config.DEFAULT_VISION_MODEL, detail="low"
+            config.DEFAULT_VISION_MODEL, detail="auto"
         )
         if not result:
             return None
