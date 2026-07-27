@@ -13,9 +13,11 @@ from services import calc, freemium, nutrition, security, vision
 router = Router()
 
 
-def _ask_bg_text(i18n: I18n, data: dict, diabetes_mode: bool) -> str:
+def _ask_bg_text(
+    i18n: I18n, data: dict, diabetes_mode: bool, is_admin: bool = False
+) -> str:
     key = "ask-bg" if diabetes_mode else "ask-weight"
-    return i18n.get(
+    text = i18n.get(
         key,
         dish=data["dish_name"],
         weight=data["weight_g"],
@@ -23,6 +25,9 @@ def _ask_bg_text(i18n: I18n, data: dict, diabetes_mode: bool) -> str:
         kcal=int(data["kcal_per_g"] * data["weight_g"]),
         confidence=i18n.get(f"confidence-{data['confidence']}"),
     )
+    if is_admin and "model_used" in data and "total_tokens" in data:
+        text += f"\n\n{data['model_used']}, {data['total_tokens']} tokens"
+    return text
 
 
 @router.message(F.photo)
@@ -112,12 +117,14 @@ async def handle_photo(
         "confidence": confidence,
         "photo_id": photo.file_id,
         "last_bg": last_bg,
+        "model_used": vision_data.get("model_used", config.DEFAULT_VISION_MODEL),
+        "total_tokens": vision_data.get("total_tokens", 0),
     }
     await state.update_data(**state_data)
     await state.set_state(FoodAnalysis.waiting_for_bg)
 
     await status_msg.edit_text(
-        _ask_bg_text(i18n, state_data, user.diabetes_mode),
+        _ask_bg_text(i18n, state_data, user.diabetes_mode, is_admin=is_admin),
         reply_markup=weight_adjust_keyboard(weight_g, i18n, last_bg),
     )
 
@@ -205,9 +212,10 @@ async def process_weight_adjust(
     data["weight_g"] = new_weight
 
     user = await crud.get_user(session, callback.from_user.id)
+    is_admin = user.id == config.ADMIN_ID if config.ADMIN_ID else False
 
     await callback.message.edit_text(
-        _ask_bg_text(i18n, data, user.diabetes_mode),
+        _ask_bg_text(i18n, data, user.diabetes_mode, is_admin=is_admin),
         reply_markup=weight_adjust_keyboard(new_weight, i18n, data.get("last_bg")),
     )
     await callback.answer()

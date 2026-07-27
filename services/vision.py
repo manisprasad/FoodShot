@@ -64,7 +64,9 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
         f"is_complex_meal (boolean: true if plate contains 3+ separate unmixed components or ambiguous sides, false otherwise)."
     )
 
-    async def _call_model(model_name: str) -> FoodRecognitionResult | None:
+    async def _call_model(
+        model_name: str,
+    ) -> tuple[FoodRecognitionResult | None, int]:
         response = await client.beta.chat.completions.parse(
             model=model_name,
             messages=[
@@ -83,13 +85,15 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
             ],
             response_format=FoodRecognitionResult,
         )
-        return response.choices[0].message.parsed
+        tokens = response.usage.total_tokens if response.usage else 0
+        return response.choices[0].message.parsed, tokens
 
     try:
         # Tier 1: Fast & low-cost model (gpt-4o-mini)
-        result = await _call_model(config.DEFAULT_VISION_MODEL)
+        result, tokens_used = await _call_model(config.DEFAULT_VISION_MODEL)
         if not result:
             return None
+        model_used = config.DEFAULT_VISION_MODEL
 
         # Tier 2 Escalation: If low confidence or complex multi-component meal, escalate to gpt-4o
         if result.confidence == "low" or result.is_complex_meal:
@@ -97,11 +101,18 @@ async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict |
                 f"Dynamic Cascade Triggered (confidence={result.confidence}, is_complex={result.is_complex_meal}). "
                 f"Escalating from {config.DEFAULT_VISION_MODEL} to {config.ESCALATION_VISION_MODEL}..."
             )
-            upgraded_result = await _call_model(config.ESCALATION_VISION_MODEL)
+            upgraded_result, upgraded_tokens = await _call_model(
+                config.ESCALATION_VISION_MODEL
+            )
             if upgraded_result:
                 result = upgraded_result
+                model_used = config.ESCALATION_VISION_MODEL
+                tokens_used += upgraded_tokens
 
-        return result.model_dump()
+        res_dict = result.model_dump()
+        res_dict["model_used"] = model_used
+        res_dict["total_tokens"] = tokens_used
+        return res_dict
 
     except Exception as e:
         logger.error(f"Error during vision analysis: {e}")
