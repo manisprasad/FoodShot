@@ -25,7 +25,7 @@ class FreemiumQuotaResult:
 
 
 async def check_daily_freemium_quota(
-    redis: Redis = redis_client, user: User = None, is_admin: bool = False
+    *, user: User, is_admin: bool = False, redis: Redis = redis_client
 ) -> FreemiumQuotaResult:
     """Check and increment daily photo analysis quota for user."""
     now = _get_utc_now()
