@@ -84,9 +84,24 @@ async def grant_user_premium(
         return None
 
     now = _get_utc_now()
-    base_time = user.premium_until if (user.premium_until and user.premium_until > now) else now
+    base_time = (
+        user.premium_until if (user.premium_until and user.premium_until > now) else now
+    )
     user.is_premium = True
     user.premium_until = base_time + timedelta(days=days)
+    await session.commit()
+    await session.refresh(user)
+    return user
+
+
+async def revoke_user_premium(session: AsyncSession, user_id: int) -> User | None:
+    """Revoke premium subscription for a user immediately."""
+    user = await crud.get_user(session, user_id)
+    if not user:
+        return None
+
+    user.is_premium = False
+    user.premium_until = None
     await session.commit()
     await session.refresh(user)
     return user
