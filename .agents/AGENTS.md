@@ -33,8 +33,11 @@ AI (GPT-4o) is ONLY used for food photo recognition (dish name, weight estimate,
 │   ├── crud.py                 # async DB operations
 │   └── database.py             # engine and session setup
 ├── services/
-│   ├── vision.py               # OpenAI vision wrapper
+│   ├── photo_flow.py           # food analysis pipeline orchestration
+│   ├── vision.py               # OpenAI vision wrapper & dynamic cascade
 │   ├── nutrition.py            # USDA nutrition client
+│   ├── security.py             # burst rate-limiting & anomaly protection
+│   ├── freemium.py             # daily quota checks & subscription logic
 │   └── calc.py                 # bolus calculation
 ├── locales/                    # i18n (EN, UK)
 ├── docs/

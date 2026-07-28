@@ -164,8 +164,11 @@ foodshot/
 │   ├── states.py           # FSM state groups
 │   └── middlewares.py      # user injection middleware
 ├── services/
-│   ├── vision.py           # GPT-4o Vision wrapper
+│   ├── photo_flow.py       # photo analysis pipeline orchestration
+│   ├── vision.py           # GPT-4o Vision wrapper & dynamic cascade
 │   ├── nutrition.py        # USDA / Nutritionix client
+│   ├── security.py         # burst rate-limiting & anomaly protection
+│   ├── freemium.py         # daily quota checks & subscription logic
 │   └── calc.py             # insulin bolus formula
 ├── db/
 │   ├── models.py           # SQLAlchemy models
