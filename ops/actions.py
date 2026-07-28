@@ -6,6 +6,7 @@ from aiogram import Bot
 from sqlalchemy import func, select
 
 from core.config import config
+from core.i18n import I18n
 from db.database import SessionLocal
 from db.models import MealLog, User
 from services import freemium
@@ -63,10 +64,23 @@ async def op_grant_premium(user_id: int, days: int) -> bool:
     if config.BOT_TOKEN:
         try:
             bot = Bot(token=config.BOT_TOKEN)
-            text = (
-                f"🎉 *FoodShot Premium Activated!*\n\n"
-                f"Your subscription has been extended by {days} days.\n"
-                f"Enjoy unlimited AI meal analysis!"
+            lang = user.language or "en"
+            i18n = I18n(lang)
+
+            until_date = (
+                user.premium_until.strftime("%d.%m.%Y") if user.premium_until else "—"
+            )
+            until_time = (
+                user.premium_until.strftime("%H:%M") if user.premium_until else "—"
+            )
+
+            days_bold = f"{days} днів" if lang == "uk" else f"{days} days"
+
+            text = i18n.get(
+                "premium-activated",
+                days=days_bold,
+                until_date=until_date,
+                until_time=until_time,
             )
             await bot.send_message(chat_id=user_id, text=text, parse_mode="Markdown")
             await bot.session.close()
