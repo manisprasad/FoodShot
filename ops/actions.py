@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from aiogram import Bot
@@ -69,12 +69,13 @@ async def op_grant_premium(user_id: int, days: float = 0, minutes: int = 0) -> b
             lang = user.language or "en"
             i18n = I18n(lang)
 
-            until_date = (
-                user.premium_until.strftime("%d.%m.%Y") if user.premium_until else "—"
-            )
-            until_time = (
-                user.premium_until.strftime("%H:%M") if user.premium_until else "—"
-            )
+            if user.premium_until:
+                local_until = user.premium_until + timedelta(hours=3)
+                until_date = local_until.strftime("%d.%m.%Y")
+                until_time = local_until.strftime("%H:%M")
+            else:
+                until_date = "—"
+                until_time = "—"
 
             if minutes > 0:
                 days_bold = f"{minutes} хвилин" if lang == "uk" else f"{minutes} minutes"
