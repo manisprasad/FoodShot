@@ -24,3 +24,4 @@ prompt-delete-confirm = ⚠️ *Are you sure you want to delete your account?* T
 prompt-delete-confirm-no-username = ⚠️ *Are you sure you want to delete your account?* This action is permanent and will delete all your food logs.{"\n\n"}To confirm, please type your first name *{$first_name}*:
 delete-success = 🗑 *Your account and history have been successfully deleted.*
 delete-cancelled = ❌ *Deletion cancelled. Username/Name did not match.*
+premium-activated = 🎉 *FoodShot Premium Activated!*{"\n\n"}Your subscription has been extended for *{$days}* (until *{$until_date}* at *{$until_time}*).{"\n\n"}Enjoy your expanded daily limit of 15 photo analyses per day!
