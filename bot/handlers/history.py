@@ -1,9 +1,12 @@
+from datetime import timedelta
+
 from aiogram import F, Router, types
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from bot.states import HistoryState
+from core.config import config
 from core.i18n import I18n
 from db import crud
 from db.models import MealLog
@@ -22,7 +25,14 @@ def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
     unit_g = i18n.get("unit-grams")
 
     for idx, meal in enumerate(meals, 1):
-        date_str = meal.created_at.strftime("%d.%m %H:%M")
+        local_created_at = (
+            meal.created_at + timedelta(hours=config.TIMEZONE_OFFSET_HOURS)
+            if meal.created_at
+            else None
+        )
+        date_str = (
+            local_created_at.strftime("%d.%m %H:%M") if local_created_at else "—"
+        )
 
         # Format meal item with or without bolus dose depending on mode
         if meal.bolus_dose is not None:
