@@ -72,3 +72,8 @@ tasks:
     desc: Run pytest
     cmds:
       - poetry run pytest -v
+
+  ops:
+    desc: Launch interactive Operations TUI Console
+    cmds:
+      - poetry run python -m ops.main
