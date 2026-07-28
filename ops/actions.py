@@ -90,10 +90,24 @@ async def op_grant_premium(user_id: int, days: int) -> bool:
 
 
 async def op_revoke_premium(user_id: int) -> bool:
-    """Revoke premium status for user."""
+    """Revoke premium status for user and send expired notification."""
     async with SessionLocal() as session:
         user = await freemium.revoke_user_premium(session, user_id=user_id)
-        return user is not None
+        if not user:
+            return False
+
+    if config.BOT_TOKEN:
+        try:
+            bot = Bot(token=config.BOT_TOKEN)
+            lang = user.language or "en"
+            i18n = I18n(lang)
+
+            text = i18n.get("premium-expired")
+            await bot.send_message(chat_id=user_id, text=text, parse_mode="Markdown")
+            await bot.session.close()
+        except Exception:
+            pass
+    return True
 
 
 async def op_send_message(user_id: int, text: str) -> bool:
