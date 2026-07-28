@@ -70,7 +70,9 @@ async def op_grant_premium(user_id: int, days: float = 0, minutes: int = 0) -> b
             i18n = I18n(lang)
 
             if user.premium_until:
-                local_until = user.premium_until + timedelta(hours=3)
+                local_until = user.premium_until + timedelta(
+                    hours=config.TIMEZONE_OFFSET_HOURS
+                )
                 until_date = local_until.strftime("%d.%m.%Y")
                 until_time = local_until.strftime("%H:%M")
             else:
