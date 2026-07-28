@@ -151,7 +151,9 @@ async def fetch_user_history(user_id: int, limit: int = 10) -> list[dict[str, An
                 "carbs_g": m.carbs_g,
                 "kcal": m.kcal,
                 "bolus_dose": m.bolus_dose,
-                "created_at": m.created_at.strftime("%Y-%m-%d %H:%M")
+                "created_at": (
+                    m.created_at + timedelta(hours=config.TIMEZONE_OFFSET_HOURS)
+                ).strftime("%Y-%m-%d %H:%M")
                 if m.created_at
                 else "—",
             }
