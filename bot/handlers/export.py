@@ -8,6 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.config import config
 from core.i18n import I18n
 from db import crud
 
@@ -190,9 +191,15 @@ async def process_export_action(
     )
 
     for log in logs:
+        local_dt = (
+            log.created_at + timedelta(hours=config.TIMEZONE_OFFSET_HOURS)
+            if log.created_at
+            else None
+        )
+        date_str = local_dt.strftime("%Y-%m-%d %H:%M:%S") if local_dt else ""
         writer.writerow(
             [
-                log.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                date_str,
                 log.dish_name,
                 log.portion_g,
                 log.kcal,
