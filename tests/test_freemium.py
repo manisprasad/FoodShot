@@ -19,8 +19,12 @@ async def test_admin_gets_unlimited_freemium_quota():
 
 
 @pytest.mark.asyncio
-async def test_premium_user_gets_unlimited_quota():
+async def test_premium_user_within_15_daily_limit():
     mock_redis = AsyncMock()
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[12])  # 12th photo today
+    mock_redis.pipeline = MagicMock(return_value=pipe_mock)
+
     now_utc = datetime.now(UTC).replace(tzinfo=None)
     user = User(
         id=2,
@@ -28,9 +32,36 @@ async def test_premium_user_gets_unlimited_quota():
         premium_until=now_utc + timedelta(days=10),
     )
 
-    result = await check_daily_freemium_quota(user=user, is_admin=False, redis=mock_redis)
+    result = await check_daily_freemium_quota(
+        user=user, is_admin=False, redis=mock_redis
+    )
     assert result.allowed is True
     assert result.is_premium is True
+    assert result.daily_limit == 15
+    assert result.used_today == 12
+
+
+@pytest.mark.asyncio
+async def test_premium_user_exceeds_15_daily_limit():
+    mock_redis = AsyncMock()
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[16])  # 16th photo today (limit 15)
+    mock_redis.pipeline = MagicMock(return_value=pipe_mock)
+
+    now_utc = datetime.now(UTC).replace(tzinfo=None)
+    user = User(
+        id=2,
+        is_premium=True,
+        premium_until=now_utc + timedelta(days=10),
+    )
+
+    result = await check_daily_freemium_quota(
+        user=user, is_admin=False, redis=mock_redis
+    )
+    assert result.allowed is False
+    assert result.is_premium is True
+    assert result.daily_limit == 15
+    assert result.used_today == 16
 
 
 @pytest.mark.asyncio
