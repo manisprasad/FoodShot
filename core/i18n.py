@@ -120,6 +120,8 @@ TEXTS = {
         "admin-broadcast-error-json": "❌ Error parsing JSON: {error}",
         "admin-broadcast-started": "⏳ Starting broadcast to {count} users...",
         "admin-broadcast-summary": "✅ *Broadcast Finished!*\n\n• Sent: {success}\n• Blocked: {blocked}\n• Failed: {failed}",
+        "premium-activated": "🎉 *FoodShot Pro Activated!*\n\nYou have unlocked full access for *{days}* (active until *{until_date}* at *{until_time}*)\n\n\nEnjoy up to 15 photo analyses per day, the highest-precision AI recognition model, and full access to all app features.\n\n\nEnjoy your upgraded experience!",
+        "premium-expired": "ℹ️ *FoodShot Pro Period Has Ended*\n\nYour access to Premium features has ended — your account has returned to the base tier with a limit of 5 photo analyses per day.\n\nThank you for using FoodShot!",
     },
     "uk": {
         "start-welcome": "👋 *Вітаю!* FoodShot — це ваш розумний щоденник харчування та трекер калорій. Просто надішліть фото страви, щоб розпочати логування!\n\nВи можете налаштувати мову або увімкнути Режим діабету у Налаштуваннях.",
@@ -242,6 +244,8 @@ TEXTS = {
         "admin-broadcast-error-json": "❌ Помилка парсингу JSON: {error}",
         "admin-broadcast-started": "⏳ Початок розсилки для {count} користувачів...",
         "admin-broadcast-summary": "✅ *Розсилку завершено!*\n\n• Надіслано: {success}\n• Заблоковано: {blocked}\n• Помилок: {failed}",
+        "premium-activated": "🎉 *FoodShot Pro активовано!*\n\nВам відкрито повний доступ на *{days}* (активно до *{until_date}* о *{until_time}*)\n\n\nОтримуйте до 15 аналізів фото на день, найточнішу AI-модель розпізнавання та повний доступ до всіх функцій застосунку.\n\n\nНасолоджуйтесь розширеними можливостями!",
+        "premium-expired": "ℹ️ *Термін дії FoodShot Pro завершився*\n\n\nВаш доступ до Premium-функцій закінчився — акаунт повернуто до базового тарифу з лімітом 5 аналізів фото на день.\n\n\nДякуємо, що користуєтеся FoodShot!",
     },
 }
 
