@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     CLOUDFLARE_TUNNEL_TOKEN: str | None = None
     ADMIN_ID: int | None = None
     PORT: int = 8000
+    TIMEZONE_OFFSET_HOURS: int = 3
     DEFAULT_VISION_MODEL: str = "gpt-4o-mini"
     ESCALATION_VISION_MODEL: str = "gpt-4o"
 
