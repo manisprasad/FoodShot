@@ -63,13 +63,21 @@ async def test_op_grant_premium_success():
 async def test_op_revoke_premium_success():
     mock_user = MagicMock()
     mock_user.id = 1003
+    mock_user.language = "en"
 
-    with patch(
-        "ops.actions.freemium.revoke_user_premium",
-        AsyncMock(return_value=mock_user),
+    with (
+        patch(
+            "ops.actions.freemium.revoke_user_premium",
+            AsyncMock(return_value=mock_user),
+        ),
+        patch("ops.actions.Bot") as mock_bot_cls,
     ):
+        mock_bot = AsyncMock()
+        mock_bot_cls.return_value = mock_bot
+
         success = await op_revoke_premium(1003)
         assert success is True
+        mock_bot.send_message.assert_called_once()
 
 
 @pytest.mark.asyncio
