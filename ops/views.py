@@ -15,7 +15,7 @@ class GrantPremiumModal(ModalScreen[dict[str, int] | None]):
     def compose(self) -> ComposeResult:
         yield Container(
             Label(
-                f"💎 Grant Premium to User: [bold]{self.username}[/bold] ({self.user_id})"
+                f"Grant Premium to User: [bold]{self.username}[/bold] ({self.user_id})"
             ),
             Label("Select Subscription Duration:"),
             RadioSet(
@@ -67,7 +67,7 @@ class RevokePremiumModal(ModalScreen[bool]):
     def compose(self) -> ComposeResult:
         yield Container(
             Label(
-                f"⚠️ Revoke Premium from [bold]{self.username}[/bold] ({self.user_id})?"
+                f"Revoke Premium from [bold]{self.username}[/bold] ({self.user_id})?"
             ),
             Label("This will reset the user's subscription to Free tier immediately."),
             Horizontal(
@@ -96,7 +96,7 @@ class SendMessageModal(ModalScreen[str | None]):
     def compose(self) -> ComposeResult:
         yield Container(
             Label(
-                f"💬 Send Telegram Message to [bold]{self.username}[/bold] ({self.user_id})"
+                f"Send Telegram Message to [bold]{self.username}[/bold] ({self.user_id})"
             ),
             Input(placeholder="Type message text here...", id="msg_input"),
             Horizontal(
@@ -126,7 +126,7 @@ class MealHistoryModal(ModalScreen[None]):
 
     def compose(self) -> ComposeResult:
         yield Container(
-            Label(f"📜 Meal History Inspector for [bold]{self.username}[/bold]"),
+            Label(f"Meal History Inspector for [bold]{self.username}[/bold]"),
             DataTable(id="history_table"),
             Horizontal(
                 Button("Close Inspector", variant="primary", id="close_btn"),

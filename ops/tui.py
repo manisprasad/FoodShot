@@ -64,7 +64,7 @@ Button {
 class OpsConsoleApp(App):
     """FoodShot Operations TUI Console Application."""
 
-    TITLE = "📸 FoodShot Operations Console (ops)"
+    TITLE = "FoodShot Operations Console (ops)"
     SUB_TITLE = "User Management & Subscription Control"
     CSS = TUI_CSS
 
@@ -85,7 +85,7 @@ class OpsConsoleApp(App):
     def compose(self) -> ComposeResult:
         yield Header(show_clock=True)
         yield Input(
-            placeholder="🔍 Search user by @username or Telegram ID...",
+            placeholder="Search user by @username or Telegram ID...",
             id="search_input",
         )
         yield Label("Loading data from database...", id="status_label")
@@ -118,7 +118,7 @@ class OpsConsoleApp(App):
                 f"Total Users: {len(self.all_users)} | Active Premium: {sum(1 for u in self.all_users if u.is_premium)}"
             )
         except Exception as e:
-            status_label.update(f"❌ Error loading DB records: {e}")
+            status_label.update(f"Error loading DB records: {e}")
 
     def _apply_filter(self) -> None:
         search_term = self.query_one("#search_input", Input).value.strip().lower()
@@ -140,7 +140,7 @@ class OpsConsoleApp(App):
         table = self.query_one("#users_table", DataTable)
         table.clear()
         for u in self.filtered_users:
-            status_str = "💎 PREMIUM" if u.is_premium else "🆓 FREE"
+            status_str = "PREMIUM" if u.is_premium else "FREE"
             local_until = time_utils.to_local_time(u.premium_until)
             local_created = time_utils.to_local_time(u.created_at)
             until_str = local_until.strftime("%Y-%m-%d %H:%M") if local_until else "—"
@@ -149,7 +149,7 @@ class OpsConsoleApp(App):
                 str(u.id),
                 f"@{u.username}" if u.username != "—" else "—",
                 u.language.upper(),
-                "✅ Enabled" if u.diabetes_mode else "❌ Disabled",
+                "Enabled" if u.diabetes_mode else "Disabled",
                 status_str,
                 until_str,
                 str(u.total_meals),
