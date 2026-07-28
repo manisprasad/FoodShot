@@ -10,6 +10,7 @@ from db import crud
 from db.models import User
 
 FREE_TIER_DAILY_LIMIT = 5
+PREMIUM_TIER_DAILY_LIMIT = 15
 
 
 def _get_utc_now() -> datetime:
@@ -29,17 +30,20 @@ async def check_daily_freemium_quota(
 ) -> FreemiumQuotaResult:
     """Check and increment daily photo analysis quota for user."""
     now = _get_utc_now()
-    is_premium_active = user.is_premium and (
-        user.premium_until is None or user.premium_until > now
+    is_premium_active = bool(
+        user.is_premium
+        and (user.premium_until is None or user.premium_until > now)
     )
 
-    if is_admin or is_premium_active:
+    if is_admin:
         return FreemiumQuotaResult(
             allowed=True,
             is_premium=True,
             used_today=0,
             daily_limit=999999,
         )
+
+    limit = PREMIUM_TIER_DAILY_LIMIT if is_premium_active else FREE_TIER_DAILY_LIMIT
 
     try:
         today_str = now.strftime("%Y-%m-%d")
@@ -51,19 +55,19 @@ async def check_daily_freemium_quota(
         results = await pipe.execute()
         used_count = int(results[0])
 
-        if used_count > FREE_TIER_DAILY_LIMIT:
+        if used_count > limit:
             return FreemiumQuotaResult(
                 allowed=False,
-                is_premium=False,
+                is_premium=is_premium_active,
                 used_today=used_count,
-                daily_limit=FREE_TIER_DAILY_LIMIT,
+                daily_limit=limit,
             )
 
         return FreemiumQuotaResult(
             allowed=True,
-            is_premium=False,
+            is_premium=is_premium_active,
             used_today=used_count,
-            daily_limit=FREE_TIER_DAILY_LIMIT,
+            daily_limit=limit,
         )
     except Exception as e:
         logger.warning(f"Redis freemium check failed, bypassing: {e}")
