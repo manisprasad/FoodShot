@@ -54,10 +54,12 @@ async def fetch_ops_users() -> list[UserOpRow]:
         return rows
 
 
-async def op_grant_premium(user_id: int, days: int) -> bool:
+async def op_grant_premium(user_id: int, days: float = 0, minutes: int = 0) -> bool:
     """Grant premium status and notify user via Telegram Bot API if configured."""
     async with SessionLocal() as session:
-        user = await freemium.grant_user_premium(session, user_id=user_id, days=days)
+        user = await freemium.grant_user_premium(
+            session, user_id=user_id, days=days, minutes=minutes
+        )
         if not user:
             return False
 
@@ -74,7 +76,10 @@ async def op_grant_premium(user_id: int, days: int) -> bool:
                 user.premium_until.strftime("%H:%M") if user.premium_until else "—"
             )
 
-            days_bold = f"{days} днів" if lang == "uk" else f"{days} days"
+            if minutes > 0:
+                days_bold = f"{minutes} хвилин" if lang == "uk" else f"{minutes} minutes"
+            else:
+                days_bold = f"{int(days)} днів" if lang == "uk" else f"{int(days)} days"
 
             text = i18n.get(
                 "premium-activated",

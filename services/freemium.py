@@ -80,7 +80,7 @@ async def check_daily_freemium_quota(
 
 
 async def grant_user_premium(
-    session: AsyncSession, user_id: int, days: int
+    session: AsyncSession, user_id: int, days: float = 0, minutes: int = 0
 ) -> User | None:
     """Grant or extend premium subscription for a user."""
     user = await crud.get_user(session, user_id)
@@ -92,7 +92,8 @@ async def grant_user_premium(
         user.premium_until if (user.premium_until and user.premium_until > now) else now
     )
     user.is_premium = True
-    user.premium_until = base_time + timedelta(days=days)
+    delta = timedelta(minutes=minutes) if minutes > 0 else timedelta(days=days)
+    user.premium_until = base_time + delta
     await session.commit()
     await session.refresh(user)
     return user
