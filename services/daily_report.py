@@ -1,10 +1,11 @@
 import asyncio
 import re
-from datetime import datetime, time, timedelta
+from datetime import time, timedelta
 
 from aiogram import Bot
 from loguru import logger
 
+from core import time_utils
 from core.i18n import I18n
 from core.redis_client import redis_client
 from db import crud
@@ -33,7 +34,7 @@ def parse_time_string(text: str) -> time | None:
 
 
 async def perform_daily_reports(bot: Bot):
-    now = datetime.now()
+    now = time_utils.get_local_now()
     now_time = now.time()
 
     async with SessionLocal() as session:
@@ -66,8 +67,7 @@ async def perform_daily_reports(bot: Bot):
                     report_date_str,
                 )
 
-                start_time = datetime.combine(report_date, time.min)
-                end_time = datetime.combine(report_date, time.max)
+                start_time, end_time = time_utils.get_local_day_utc_range(report_date)
 
                 logs = await crud.get_meal_logs_in_range(
                     session, user.id, start_time, end_time

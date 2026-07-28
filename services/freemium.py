@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta
 
 from loguru import logger
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core import time_utils
 from core.redis_client import redis_client
 from db import crud
 from db.models import User
@@ -13,8 +14,12 @@ FREE_TIER_DAILY_LIMIT = 5
 PREMIUM_TIER_DAILY_LIMIT = 15
 
 
-def _get_utc_now() -> datetime:
-    return datetime.now(UTC).replace(tzinfo=None)
+def is_user_premium(user: User, now: datetime | None = None) -> bool:
+    """Return True if user has an active, non-expired premium subscription."""
+    if not user.is_premium or user.premium_until is None:
+        return False
+    current = now if now is not None else time_utils.get_utc_now()
+    return user.premium_until > current
 
 
 @dataclass
@@ -29,11 +34,12 @@ async def check_daily_freemium_quota(
     *, user: User, is_admin: bool = False, redis: Redis = redis_client
 ) -> FreemiumQuotaResult:
     """Check and increment daily photo analysis quota for user."""
-    now = _get_utc_now()
-    is_premium_active = bool(
-        user.is_premium
-        and (user.premium_until is None or user.premium_until > now)
-    )
+    now = time_utils.get_utc_now()
+    is_premium_active = is_user_premium(user, now)
+
+    # Sync DB state if subscription expired
+    if user.is_premium and not is_premium_active and user.premium_until and user.premium_until <= now:
+        user.is_premium = False
 
     if is_admin:
         return FreemiumQuotaResult(
@@ -46,7 +52,7 @@ async def check_daily_freemium_quota(
     limit = PREMIUM_TIER_DAILY_LIMIT if is_premium_active else FREE_TIER_DAILY_LIMIT
 
     try:
-        today_str = now.strftime("%Y-%m-%d")
+        today_str = time_utils.get_today_str()
         quota_key = f"quota:freemium:{user.id}:{today_str}"
 
         pipe = redis.pipeline()
@@ -87,7 +93,7 @@ async def grant_user_premium(
     if not user:
         return None
 
-    now = _get_utc_now()
+    now = time_utils.get_utc_now()
     base_time = (
         user.premium_until if (user.premium_until and user.premium_until > now) else now
     )

@@ -1,6 +1,6 @@
 import csv
 import io
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 from aiogram import F, Router, types
 from aiogram.filters import Command
@@ -8,7 +8,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from core.config import config
+from core import time_utils
 from core.i18n import I18n
 from db import crud
 
@@ -47,27 +47,30 @@ MONTH_NAMES = {
 
 
 def get_export_range(period: str) -> tuple[datetime, datetime]:
-    now = datetime.now()
+    now_local = time_utils.get_local_now()
     if period == "all":
-        start = datetime.combine(now.date() - timedelta(days=90), time.min)
-        return start, now
+        start_utc, _ = time_utils.get_local_day_utc_range(
+            now_local.date() - timedelta(days=90)
+        )
+        end_utc = time_utils.get_utc_now()
+        return start_utc, end_utc
 
     # Expected format: "YYYY-MM"
     year_str, month_str = period.split("-")
     year = int(year_str)
     month = int(month_str)
 
-    start = datetime(year, month, 1, 0, 0, 0)
+    start_local = datetime(year, month, 1, 0, 0, 0)
     if month == 12:
-        end = datetime(year + 1, 1, 1, 0, 0, 0) - timedelta(seconds=1)
+        end_local = datetime(year + 1, 1, 1, 0, 0, 0) - timedelta(seconds=1)
     else:
-        end = datetime(year, month + 1, 1, 0, 0, 0) - timedelta(seconds=1)
+        end_local = datetime(year, month + 1, 1, 0, 0, 0) - timedelta(seconds=1)
 
-    # Limit current month's end to now
-    if year == now.year and month == now.month:
-        end = now
+    # Limit current month's end to current time
+    if year == now_local.year and month == now_local.month:
+        end_local = now_local
 
-    return start, end
+    return time_utils.to_utc_time(start_local), time_utils.to_utc_time(end_local)
 
 
 async def get_export_keyboard(
@@ -191,11 +194,7 @@ async def process_export_action(
     )
 
     for log in logs:
-        local_dt = (
-            log.created_at + timedelta(hours=config.TIMEZONE_OFFSET_HOURS)
-            if log.created_at
-            else None
-        )
+        local_dt = time_utils.to_local_time(log.created_at)
         date_str = local_dt.strftime("%Y-%m-%d %H:%M:%S") if local_dt else ""
         writer.writerow(
             [

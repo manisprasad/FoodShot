@@ -1,9 +1,10 @@
 import asyncio
-from datetime import date, datetime, time, timedelta
+from datetime import timedelta
 
 from aiogram import Bot
 from loguru import logger
 
+from core import time_utils
 from core.i18n import I18n
 from core.redis_client import redis_client
 from db import crud
@@ -13,8 +14,8 @@ REDIS_RETENTION_LOCK_KEY = "last_retention_check_date"
 
 
 async def perform_retention_checks(bot: Bot):
-    today = date.today()
-    today_str = today.strftime("%Y-%m-%d")
+    today = time_utils.get_local_now().date()
+    today_str = time_utils.get_today_str()
 
     last_checked = await redis_client.get(REDIS_RETENTION_LOCK_KEY)
     if last_checked and last_checked == today_str:
@@ -25,17 +26,14 @@ async def perform_retention_checks(bot: Bot):
 
     # 83 days ago = will be 90 days in 7 days
     date_83_days_ago = today - timedelta(days=83)
-    start_83 = datetime.combine(date_83_days_ago, time.min)
-    end_83 = datetime.combine(date_83_days_ago, time.max)
+    start_83, end_83 = time_utils.get_local_day_utc_range(date_83_days_ago)
 
     # 89 days ago = will be 90 days tomorrow
     date_89_days_ago = today - timedelta(days=89)
-    start_89 = datetime.combine(date_89_days_ago, time.min)
-    end_89 = datetime.combine(date_89_days_ago, time.max)
+    start_89, end_89 = time_utils.get_local_day_utc_range(date_89_days_ago)
 
-    # 90 days threshold
-    date_90_days_ago = today - timedelta(days=90)
-    before_90 = datetime.combine(date_90_days_ago, time.min)
+    # 90 days threshold in UTC
+    before_90 = time_utils.get_utc_now() - timedelta(days=90)
 
     async with SessionLocal() as session:
         try:

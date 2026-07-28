@@ -1,10 +1,11 @@
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Any
 
 from aiogram import Bot
 from sqlalchemy import func, select
 
+from core import time_utils
 from core.config import config
 from core.i18n import I18n
 from db.database import SessionLocal
@@ -38,6 +39,7 @@ async def fetch_ops_users() -> list[UserOpRow]:
         )
         result = await session.execute(stmt)
         rows = []
+        now = time_utils.get_utc_now()
         for user, count in result.all():
             rows.append(
                 UserOpRow(
@@ -45,7 +47,7 @@ async def fetch_ops_users() -> list[UserOpRow]:
                     username=user.username or "—",
                     language=user.language or "en",
                     diabetes_mode=bool(user.diabetes_mode),
-                    is_premium=bool(user.is_premium),
+                    is_premium=freemium.is_user_premium(user, now),
                     premium_until=user.premium_until,
                     total_meals=count,
                     created_at=user.created_at,
@@ -70,9 +72,7 @@ async def op_grant_premium(user_id: int, days: float = 0, minutes: int = 0) -> b
             i18n = I18n(lang)
 
             if user.premium_until:
-                local_until = user.premium_until + timedelta(
-                    hours=config.TIMEZONE_OFFSET_HOURS
-                )
+                local_until = time_utils.to_local_time(user.premium_until)
                 until_date = local_until.strftime("%d.%m.%Y")
                 until_time = local_until.strftime("%H:%M")
             else:
@@ -143,19 +143,20 @@ async def fetch_user_history(user_id: int, limit: int = 10) -> list[dict[str, An
         )
         result = await session.execute(stmt)
         meals = result.scalars().all()
-        return [
-            {
-                "id": m.id,
-                "dish_name": m.dish_name or "Unknown",
-                "portion_g": m.portion_g,
-                "carbs_g": m.carbs_g,
-                "kcal": m.kcal,
-                "bolus_dose": m.bolus_dose,
-                "created_at": (
-                    m.created_at + timedelta(hours=config.TIMEZONE_OFFSET_HOURS)
-                ).strftime("%Y-%m-%d %H:%M")
-                if m.created_at
-                else "—",
-            }
-            for m in meals
-        ]
+        rows = []
+        for m in meals:
+            local_dt = time_utils.to_local_time(m.created_at)
+            rows.append(
+                {
+                    "id": m.id,
+                    "dish_name": m.dish_name or "Unknown",
+                    "portion_g": m.portion_g,
+                    "carbs_g": m.carbs_g,
+                    "kcal": m.kcal,
+                    "bolus_dose": m.bolus_dose,
+                    "created_at": local_dt.strftime("%Y-%m-%d %H:%M")
+                    if local_dt
+                    else "—",
+                }
+            )
+        return rows

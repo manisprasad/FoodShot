@@ -30,7 +30,7 @@ def test_parse_time_string_invalid_formats():
 @pytest.mark.asyncio
 async def test_perform_daily_reports_skips_if_not_time():
     bot = AsyncMock()
-    # Mock current time at 10:00 AM
+    # Mock current local time at 10:00 AM
     mock_now = datetime.combine(date.today(), time(10, 0))
 
     user = MagicMock()
@@ -38,12 +38,10 @@ async def test_perform_daily_reports_skips_if_not_time():
     user.daily_report_time = time(12, 0)  # Report time is 12:00 (not yet time)
 
     with (
-        patch("services.daily_report.datetime") as mock_datetime,
+        patch("core.time_utils.get_local_now", return_value=mock_now),
         patch("services.daily_report.SessionLocal") as mock_session_cls,
         patch("services.daily_report.crud") as mock_crud,
     ):
-        mock_datetime.now.return_value = mock_now
-
         mock_session = AsyncMock()
         mock_session_cls.return_value = mock_session
         mock_session.__aenter__.return_value = mock_session
@@ -59,7 +57,7 @@ async def test_perform_daily_reports_skips_if_not_time():
 @pytest.mark.asyncio
 async def test_perform_daily_reports_already_sent():
     bot = AsyncMock()
-    # Mock current time at 2:00 PM (14:00)
+    # Mock current local time at 2:00 PM (14:00)
     mock_now = datetime.combine(date.today(), time(14, 0))
     today_str = date.today().strftime("%Y-%m-%d")
 
@@ -68,12 +66,11 @@ async def test_perform_daily_reports_already_sent():
     user.daily_report_time = time(12, 0)  # It is past report time
 
     with (
-        patch("services.daily_report.datetime") as mock_datetime,
+        patch("core.time_utils.get_local_now", return_value=mock_now),
         patch("services.daily_report.redis_client") as mock_redis,
         patch("services.daily_report.SessionLocal") as mock_session_cls,
         patch("services.daily_report.crud") as mock_crud,
     ):
-        mock_datetime.now.return_value = mock_now
         # Redis says report was already sent for today
         lock_key = f"daily_report_sent:{user.id}:{today_str}"
         mock_redis.get.side_effect = lambda k: today_str if k == lock_key else None
@@ -108,12 +105,11 @@ async def test_perform_daily_reports_deficit_yesterday_mode():
     meal.kcal = 1200.0  # Deficit
 
     with (
-        patch("services.daily_report.datetime") as mock_datetime,
+        patch("core.time_utils.get_local_now", return_value=mock_now),
         patch("services.daily_report.redis_client") as mock_redis,
         patch("services.daily_report.SessionLocal") as mock_session_cls,
         patch("services.daily_report.crud") as mock_crud,
     ):
-        mock_datetime.now.return_value = mock_now
         mock_redis.get.return_value = None  # Not sent yet
 
         mock_session = AsyncMock()
@@ -154,12 +150,11 @@ async def test_perform_daily_reports_surplus_today_mode():
     meal.kcal = 2050.0  # Surplus
 
     with (
-        patch("services.daily_report.datetime") as mock_datetime,
+        patch("core.time_utils.get_local_now", return_value=mock_now),
         patch("services.daily_report.redis_client") as mock_redis,
         patch("services.daily_report.SessionLocal") as mock_session_cls,
         patch("services.daily_report.crud") as mock_crud,
     ):
-        mock_datetime.now.return_value = mock_now
         mock_redis.get.return_value = None
 
         mock_session = AsyncMock()

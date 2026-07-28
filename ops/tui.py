@@ -2,6 +2,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import DataTable, Footer, Header, Input, Label
 
+from core import time_utils
 from ops import actions
 from ops.views import (
     GrantPremiumModal,
@@ -140,10 +141,10 @@ class OpsConsoleApp(App):
         table.clear()
         for u in self.filtered_users:
             status_str = "💎 PREMIUM" if u.is_premium else "🆓 FREE"
-            until_str = (
-                u.premium_until.strftime("%Y-%m-%d") if u.premium_until else "—"
-            )
-            reg_str = u.created_at.strftime("%Y-%m-%d") if u.created_at else "—"
+            local_until = time_utils.to_local_time(u.premium_until)
+            local_created = time_utils.to_local_time(u.created_at)
+            until_str = local_until.strftime("%Y-%m-%d %H:%M") if local_until else "—"
+            reg_str = local_created.strftime("%Y-%m-%d") if local_created else "—"
             table.add_row(
                 str(u.id),
                 f"@{u.username}" if u.username != "—" else "—",

@@ -10,6 +10,7 @@ from bot.handlers.export import (
     process_export_action,
     process_export_menu,
 )
+from core import time_utils
 from core.i18n import I18n
 from db.models import MealLog
 
@@ -101,10 +102,13 @@ def test_get_export_range():
     start, end = get_export_range("all")
     assert (end - start).days >= 90
 
-    # Test month YYYY-MM
-    start0, end0 = get_export_range("2026-06")
-    assert start0.year == 2026
-    assert start0.month == 6
-    assert start0.day == 1
-    assert end0.month == 6
-    assert end0.day == 30
+    # Test month YYYY-MM (returns UTC range corresponding to local month)
+    start_utc, end_utc = get_export_range("2026-06")
+    start_local = time_utils.to_local_time(start_utc)
+    end_local = time_utils.to_local_time(end_utc)
+
+    assert start_local.year == 2026
+    assert start_local.month == 6
+    assert start_local.day == 1
+    assert end_local.month == 6
+    assert end_local.day == 30
