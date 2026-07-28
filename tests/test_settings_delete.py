@@ -1,7 +1,6 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from aiogram.fsm.context import FSMContext
 from aiogram.types import ReplyKeyboardRemove
 
 from bot.handlers.settings import (
@@ -18,7 +17,7 @@ from core.i18n import I18n
 async def test_cmd_danger():
     message = AsyncMock()
     message.from_user.id = 12345
-    state = AsyncMock(spec=FSMContext)
+    state = AsyncMock()
     i18n = I18n("en")
 
     await cmd_danger(message, state, i18n)
@@ -30,25 +29,21 @@ async def test_cmd_danger():
 
 @pytest.mark.asyncio
 async def test_process_back_to_settings():
-    callback = AsyncMock()
+    callback = MagicMock()
+    callback.message = MagicMock()
+    callback.message.edit_text = AsyncMock()
+    callback.answer = AsyncMock()
     callback.from_user.id = 12345
-    session = AsyncMock()
-    state = AsyncMock(spec=FSMContext)
+    session = MagicMock()
+    state = MagicMock()
+    state.clear = AsyncMock()
     i18n = I18n("en")
 
-    user = MagicMock()
-    user.language = "en"
-    user.icr = 5.0
-    user.isf = 5.0
-    user.target_bg = 5.0
-    user.insulin_type = "NovoRapid"
+    await process_back_to_settings(callback, session, state, i18n)
 
-    with patch("bot.handlers.settings.crud.get_user", return_value=user):
-        await process_back_to_settings(callback, session, state, i18n)
-
-        callback.message.edit_text.assert_called_once()
-        state.clear.assert_called_once()
-        callback.answer.assert_called_once()
+    callback.message.edit_text.assert_called_once()
+    state.clear.assert_called_once()
+    callback.answer.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -57,7 +52,7 @@ async def test_process_delete_account_with_username():
     callback.from_user.id = 12345
     callback.from_user.username = "testuser"
     session = AsyncMock()
-    state = AsyncMock(spec=FSMContext)
+    state = AsyncMock()
     i18n = I18n("en")
 
     await process_delete_account(callback, session, state, i18n)
@@ -78,7 +73,7 @@ async def test_process_delete_account_no_username():
     callback.from_user.username = None
     callback.from_user.first_name = "Alex"
     session = AsyncMock()
-    state = AsyncMock(spec=FSMContext)
+    state = AsyncMock()
     i18n = I18n("en")
 
     await process_delete_account(callback, session, state, i18n)
@@ -98,7 +93,7 @@ async def test_process_delete_confirm_success():
     message.from_user.id = 12345
     message.text = "testuser"
     session = AsyncMock()
-    state = AsyncMock(spec=FSMContext)
+    state = AsyncMock()
     state.get_data.return_value = {"delete_target": "testuser"}
     i18n = I18n("en")
 
@@ -122,7 +117,7 @@ async def test_process_delete_confirm_cancelled():
     message.from_user.id = 12345
     message.text = "wronguser"
     session = AsyncMock()
-    state = AsyncMock(spec=FSMContext)
+    state = AsyncMock()
     state.get_data.return_value = {"delete_target": "testuser"}
     i18n = I18n("en")
 
@@ -135,7 +130,7 @@ async def test_process_delete_confirm_cancelled():
 
     with (
         patch("bot.handlers.settings.crud.delete_user") as mock_delete_user,
-        patch("bot.handlers.settings.crud.get_user", return_value=user),
+
     ):
         await process_delete_confirm(message, session, state, i18n)
 

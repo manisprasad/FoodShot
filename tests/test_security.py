@@ -29,8 +29,8 @@ async def test_user_triggers_burst_cooldown():
     mock_redis = AsyncMock()
     mock_redis.ttl.return_value = -2  # key does not exist
 
-    pipe_mock = AsyncMock()
-    pipe_mock.execute.return_value = [4]  # 4th request in 30s
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[4])  # 4th request in 30s
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)
 
     result = await check_photo_security_limits(mock_redis, user_id=123, is_admin=False)

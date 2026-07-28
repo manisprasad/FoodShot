@@ -14,7 +14,7 @@ async def test_perform_retention_checks_already_run():
 
     with patch("services.retention.redis_client") as mock_redis:
         # Mock Redis returning today's date (already run)
-        mock_redis.get.return_value = today_str
+        mock_redis.get = AsyncMock(return_value=today_str)
 
         await perform_retention_checks(bot)
 
@@ -42,7 +42,8 @@ async def test_perform_retention_checks_runs_successfully():
         patch("services.retention.crud") as mock_crud,
     ):
         # Redis says last check was yesterday
-        mock_redis.get.return_value = yesterday_str
+        mock_redis.get = AsyncMock(return_value=yesterday_str)
+        mock_redis.set = AsyncMock()
 
         # Mock DB session
         mock_session = AsyncMock()

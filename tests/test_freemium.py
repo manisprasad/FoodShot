@@ -36,8 +36,8 @@ async def test_premium_user_gets_unlimited_quota():
 @pytest.mark.asyncio
 async def test_free_user_within_daily_limit():
     mock_redis = AsyncMock()
-    pipe_mock = AsyncMock()
-    pipe_mock.execute.return_value = [3]  # 3rd photo today
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[3])  # 3rd photo today
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)
 
     user = User(id=3, is_premium=False)
@@ -49,8 +49,8 @@ async def test_free_user_within_daily_limit():
 @pytest.mark.asyncio
 async def test_free_user_exceeds_daily_limit():
     mock_redis = AsyncMock()
-    pipe_mock = AsyncMock()
-    pipe_mock.execute.return_value = [6]  # 6th photo today (limit is 5)
+    pipe_mock = MagicMock()
+    pipe_mock.execute = AsyncMock(return_value=[6])  # 6th photo today (limit is 5)
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)
 
     user = User(id=4, is_premium=False)
