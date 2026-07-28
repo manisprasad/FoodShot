@@ -101,3 +101,16 @@ async def test_grant_user_premium_success():
         assert updated_user.is_premium is True
         assert updated_user.premium_until is not None
         mock_session.commit.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_grant_user_premium_minutes():
+    mock_session = AsyncMock()
+    mock_user = User(id=6, is_premium=False, premium_until=None)
+
+    with pytest.MonkeyPatch.context() as m:
+        m.setattr("db.crud.get_user", AsyncMock(return_value=mock_user))
+        updated_user = await grant_user_premium(mock_session, user_id=6, minutes=10)
+        assert updated_user.is_premium is True
+        assert updated_user.premium_until is not None
+        mock_session.commit.assert_called_once()

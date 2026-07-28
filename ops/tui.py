@@ -171,16 +171,20 @@ class OpsConsoleApp(App):
         if not user:
             return
 
-        def handle_result(days: int | None) -> None:
-            if days is not None:
-                self.run_worker(self._do_grant_premium(user.id, days))
+        def handle_result(result: dict[str, int] | None) -> None:
+            if result is not None:
+                if "minutes" in result:
+                    self.run_worker(self._do_grant_premium(user.id, minutes=result["minutes"]))
+                else:
+                    self.run_worker(self._do_grant_premium(user.id, days=result["days"]))
 
         self.push_screen(GrantPremiumModal(user.id, user.username), handle_result)
 
-    async def _do_grant_premium(self, user_id: int, days: int) -> None:
-        success = await actions.op_grant_premium(user_id, days)
+    async def _do_grant_premium(self, user_id: int, days: float = 0, minutes: int = 0) -> None:
+        success = await actions.op_grant_premium(user_id, days=days, minutes=minutes)
         if success:
-            self.notify(f"Granted Premium for {days} days to user {user_id}!")
+            dur_str = f"{minutes} minutes" if minutes > 0 else f"{int(days)} days"
+            self.notify(f"Granted Premium ({dur_str}) to user {user_id}!")
             await self.action_refresh_data()
 
     async def action_revoke_premium(self) -> None:
