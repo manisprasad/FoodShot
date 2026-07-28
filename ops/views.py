@@ -4,7 +4,7 @@ from textual.screen import ModalScreen
 from textual.widgets import Button, DataTable, Input, Label, RadioButton, RadioSet
 
 
-class GrantPremiumModal(ModalScreen[int | None]):
+class GrantPremiumModal(ModalScreen[dict[str, int] | None]):
     """Modal dialog to select or enter duration to grant Premium subscription."""
 
     def __init__(self, user_id: int, username: str):
@@ -19,6 +19,7 @@ class GrantPremiumModal(ModalScreen[int | None]):
             ),
             Label("Select Subscription Duration:"),
             RadioSet(
+                RadioButton("10 Minutes (Test)", id="m10"),
                 RadioButton("7 Days", value=True, id="d7"),
                 RadioButton("30 Days (1 Month)", id="d30"),
                 RadioButton("90 Days (3 Months)", id="d90"),
@@ -42,15 +43,17 @@ class GrantPremiumModal(ModalScreen[int | None]):
             selected_id = (
                 radio_set.pressed_button.id if radio_set.pressed_button else "d30"
             )
-            days_map = {
-                "d7": 7,
-                "d30": 30,
-                "d90": 90,
-                "d365": 365,
-                "d9999": 9999,
-            }
-            days = days_map.get(selected_id, 30)
-            self.dismiss(days)
+            if selected_id == "m10":
+                self.dismiss({"minutes": 10})
+            else:
+                days_map = {
+                    "d7": 7,
+                    "d30": 30,
+                    "d90": 90,
+                    "d365": 365,
+                    "d9999": 9999,
+                }
+                self.dismiss({"days": days_map.get(selected_id, 30)})
 
 
 class RevokePremiumModal(ModalScreen[bool]):
@@ -68,7 +71,7 @@ class RevokePremiumModal(ModalScreen[bool]):
             ),
             Label("This will reset the user's subscription to Free tier immediately."),
             Horizontal(
-                Button("Confirm Revoke", variant="danger", id="confirm_btn"),
+                Button("Confirm Revoke", variant="error", id="confirm_btn"),
                 Button("Cancel", variant="primary", id="cancel_btn"),
                 classes="modal_buttons",
             ),
