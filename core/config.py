@@ -1,3 +1,4 @@
+import os
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 from pydantic import field_validator
@@ -25,7 +26,6 @@ class Settings(BaseSettings):
     LANGFUSE_SECRET_KEY: str | None = None
     LANGFUSE_HOST: str | None = None
     LANGFUSE_BASE_URL: str | None = None
-
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
@@ -58,3 +58,11 @@ class Settings(BaseSettings):
 
 
 config = Settings()
+
+if config.LANGFUSE_PUBLIC_KEY:
+    os.environ["LANGFUSE_PUBLIC_KEY"] = config.LANGFUSE_PUBLIC_KEY
+if config.LANGFUSE_SECRET_KEY:
+    os.environ["LANGFUSE_SECRET_KEY"] = config.LANGFUSE_SECRET_KEY
+if config.LANGFUSE_HOST:
+    os.environ["LANGFUSE_HOST"] = config.LANGFUSE_HOST
+    os.environ["LANGFUSE_BASE_URL"] = config.LANGFUSE_HOST

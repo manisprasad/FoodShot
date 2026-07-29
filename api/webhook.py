@@ -61,6 +61,11 @@ async def lifespan(app: FastAPI):
         await ping_task
     except asyncio.CancelledError:
         pass
+    try:
+        from langfuse import get_client
+        get_client().flush()
+    except Exception as e:
+        logger.warning("Failed to flush Langfuse on shutdown: %s", e)
     # We purposefully do not delete the webhook here because during rolling updates
     # (like on Render), the old instance shutting down would delete the webhook
     # that the new instance just set.
