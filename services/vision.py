@@ -1,8 +1,9 @@
 import base64
 import io
 
+from langfuse import observe
+from langfuse.openai import AsyncOpenAI
 from loguru import logger
-from openai import AsyncOpenAI
 from PIL import Image
 from pydantic import BaseModel
 
@@ -50,6 +51,7 @@ def compress_image_for_vision(
         return image_bytes
 
 
+@observe(name="food_photo_analysis")
 async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict | None:
     compressed_bytes = compress_image_for_vision(image_bytes)
     base64_image = base64.b64encode(compressed_bytes).decode("utf-8")

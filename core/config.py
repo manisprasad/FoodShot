@@ -21,6 +21,11 @@ class Settings(BaseSettings):
     TIMEZONE_OFFSET_HOURS: int = 3
     DEFAULT_VISION_MODEL: str = "gpt-4o-mini"
     ESCALATION_VISION_MODEL: str = "gpt-4o"
+    LANGFUSE_PUBLIC_KEY: str | None = None
+    LANGFUSE_SECRET_KEY: str | None = None
+    LANGFUSE_HOST: str | None = None
+    LANGFUSE_BASE_URL: str | None = None
+
 
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
