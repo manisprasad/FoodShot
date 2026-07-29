@@ -52,7 +52,9 @@ def compress_image_for_vision(
 
 
 @observe(name="food_photo_analysis")
-async def analyze_food_photo(image_bytes: bytes, language: str = "en") -> dict | None:
+async def analyze_food_photo(
+    image_bytes: bytes, language: str = "en", user_id: str | int | None = None
+) -> dict | None:
     compressed_bytes = compress_image_for_vision(image_bytes)
     base64_image = base64.b64encode(compressed_bytes).decode("utf-8")
 

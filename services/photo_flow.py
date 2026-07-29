@@ -59,7 +59,7 @@ async def execute_photo_analysis(
     # 3. Vision AI analysis
     try:
         vision_data = await vision.analyze_food_photo(
-            photo_bytes, language=user.language
+            photo_bytes, language=user.language, user_id=user.id
         )
         if not vision_data:
             return PhotoFlowResult(success=False, error_key="not-found")
