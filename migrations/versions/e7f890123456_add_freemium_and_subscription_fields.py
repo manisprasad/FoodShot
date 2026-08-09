@@ -22,9 +22,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.add_column(
         "users",
-        sa.Column(
-            "is_premium", sa.Boolean(), server_default="false", nullable=False
-        ),
+        sa.Column("is_premium", sa.Boolean(), server_default="false", nullable=False),
     )
     op.add_column("users", sa.Column("premium_until", sa.DateTime(), nullable=True))
 

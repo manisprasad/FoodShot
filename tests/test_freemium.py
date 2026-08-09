@@ -12,7 +12,9 @@ async def test_admin_gets_unlimited_freemium_quota():
     mock_redis = AsyncMock()
     user = User(id=1, is_premium=False)
 
-    result = await check_daily_freemium_quota(user=user, is_admin=True, redis=mock_redis)
+    result = await check_daily_freemium_quota(
+        user=user, is_admin=True, redis=mock_redis
+    )
     assert result.allowed is True
     assert result.is_premium is True
     mock_redis.pipeline.assert_not_called()
@@ -72,7 +74,9 @@ async def test_free_user_within_daily_limit():
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)
 
     user = User(id=3, is_premium=False)
-    result = await check_daily_freemium_quota(user=user, is_admin=False, redis=mock_redis)
+    result = await check_daily_freemium_quota(
+        user=user, is_admin=False, redis=mock_redis
+    )
     assert result.allowed is True
     assert result.used_today == 3
 
@@ -85,7 +89,9 @@ async def test_free_user_exceeds_daily_limit():
     mock_redis.pipeline = MagicMock(return_value=pipe_mock)
 
     user = User(id=4, is_premium=False)
-    result = await check_daily_freemium_quota(user=user, is_admin=False, redis=mock_redis)
+    result = await check_daily_freemium_quota(
+        user=user, is_admin=False, redis=mock_redis
+    )
     assert result.allowed is False
     assert result.used_today == 6
 

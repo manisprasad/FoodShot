@@ -175,13 +175,19 @@ class OpsConsoleApp(App):
         def handle_result(result: dict[str, int] | None) -> None:
             if result is not None:
                 if "minutes" in result:
-                    self.run_worker(self._do_grant_premium(user.id, minutes=result["minutes"]))
+                    self.run_worker(
+                        self._do_grant_premium(user.id, minutes=result["minutes"])
+                    )
                 else:
-                    self.run_worker(self._do_grant_premium(user.id, days=result["days"]))
+                    self.run_worker(
+                        self._do_grant_premium(user.id, days=result["days"])
+                    )
 
         self.push_screen(GrantPremiumModal(user.id, user.username), handle_result)
 
-    async def _do_grant_premium(self, user_id: int, days: float = 0, minutes: int = 0) -> None:
+    async def _do_grant_premium(
+        self, user_id: int, days: float = 0, minutes: int = 0
+    ) -> None:
         success = await actions.op_grant_premium(user_id, days=days, minutes=minutes)
         if success:
             dur_str = f"{minutes} minutes" if minutes > 0 else f"{int(days)} days"

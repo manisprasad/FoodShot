@@ -130,7 +130,6 @@ async def test_process_delete_confirm_cancelled():
 
     with (
         patch("bot.handlers.settings.crud.delete_user") as mock_delete_user,
-
     ):
         await process_delete_confirm(message, session, state, i18n)
 

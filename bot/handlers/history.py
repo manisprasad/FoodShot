@@ -24,9 +24,7 @@ def get_history_content(meals: list[MealLog], i18n: I18n) -> str:
 
     for idx, meal in enumerate(meals, 1):
         local_created_at = time_utils.to_local_time(meal.created_at)
-        date_str = (
-            local_created_at.strftime("%d.%m %H:%M") if local_created_at else "—"
-        )
+        date_str = local_created_at.strftime("%d.%m %H:%M") if local_created_at else "—"
 
         # Format meal item with or without bolus dose depending on mode
         if meal.bolus_dose is not None:

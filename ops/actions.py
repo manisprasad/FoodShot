@@ -80,7 +80,9 @@ async def op_grant_premium(user_id: int, days: float = 0, minutes: int = 0) -> b
                 until_time = "—"
 
             if minutes > 0:
-                days_bold = f"{minutes} хвилин" if lang == "uk" else f"{minutes} minutes"
+                days_bold = (
+                    f"{minutes} хвилин" if lang == "uk" else f"{minutes} minutes"
+                )
             else:
                 days_bold = f"{int(days)} днів" if lang == "uk" else f"{int(days)} days"
 

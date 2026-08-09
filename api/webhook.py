@@ -63,6 +63,7 @@ async def lifespan(app: FastAPI):
         pass
     try:
         from langfuse import get_client
+
         get_client().flush()
     except Exception as e:
         logger.warning("Failed to flush Langfuse on shutdown: %s", e)

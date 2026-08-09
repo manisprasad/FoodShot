@@ -38,7 +38,12 @@ async def check_daily_freemium_quota(
     is_premium_active = is_user_premium(user, now)
 
     # Sync DB state if subscription expired
-    if user.is_premium and not is_premium_active and user.premium_until and user.premium_until <= now:
+    if (
+        user.is_premium
+        and not is_premium_active
+        and user.premium_until
+        and user.premium_until <= now
+    ):
         user.is_premium = False
 
     if is_admin:

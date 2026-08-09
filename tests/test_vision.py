@@ -77,7 +77,9 @@ async def test_analyze_food_photo_escalates_on_complex_meal():
         }
 
         mock_response_1 = AsyncMock()
-        mock_response_1.choices = [MagicMock(message=MagicMock(parsed=mock_mini_parsed))]
+        mock_response_1.choices = [
+            MagicMock(message=MagicMock(parsed=mock_mini_parsed))
+        ]
 
         mock_response_2 = AsyncMock()
         mock_response_2.choices = [MagicMock(message=MagicMock(parsed=mock_4o_parsed))]

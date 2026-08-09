@@ -10,9 +10,7 @@ def get_utc_now() -> datetime:
 
 def get_local_offset(offset_hours: float | None = None) -> float:
     """Return offset hours, defaulting to config.TIMEZONE_OFFSET_HOURS."""
-    return (
-        config.TIMEZONE_OFFSET_HOURS if offset_hours is None else float(offset_hours)
-    )
+    return config.TIMEZONE_OFFSET_HOURS if offset_hours is None else float(offset_hours)
 
 
 def get_local_now(offset_hours: float | None = None) -> datetime:
