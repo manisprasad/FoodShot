@@ -1,7 +1,5 @@
 <div align="center">
-  <h1>📸 FoodShot</h1>
-  <p><b>Your AI-powered smart food diary and calorie/macro tracker.</b></p>
-  <p><i>Snap a photo. Log calories. Track nutrients. Optional diabetes logging.</i></p>
+  <img src="./docs/banner.svg" alt="FoodShot Banner" width="100%"/>
 </div>
 
 ---
