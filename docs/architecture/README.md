@@ -193,4 +193,84 @@ flowchart TD
     CRUD --> DB_Engine
     DB_Engine --> Models
     Models --> PostgreSQL
-````
+```
+
+## Technology Stack
+
+The project relies on a modern asynchronous Python stack, structured for scalability, performance, and clear separation of concerns.
+
+### Core Application
+- **Python 3.11-3.13**: Core programming language.
+- **Poetry**: Dependency management and packaging.
+- **Taskfile (go-task)**: Task runner for development commands (linting, testing, docker orchestration).
+- **Ruff**: Extremely fast Python linter and formatter used to enforce strict code quality.
+
+### Bot & Web Server
+- **aiogram 3.x**: Modern asynchronous framework for Telegram Bot API. Handles updates, routing, FSM (Finite State Machine), and keyboards.
+- **FastAPI**: High-performance web framework used for the webhook endpoint to receive updates from Telegram.
+- **Uvicorn**: ASGI web server implementation for Python.
+
+### Database & Caching
+- **PostgreSQL**: Primary relational database storing users, meal logs, and settings.
+- **SQLAlchemy (Async)**: Object Relational Mapper for asynchronous database interactions.
+- **Alembic**: Database migration tool for managing schema changes.
+- **Redis**: In-memory data store used for:
+  - FSM state storage (`aiogram.fsm.storage.redis`)
+  - Webhook idempotency (`webhook:update`)
+  - Burst rate-limiting (`security:burst`)
+  - Freemium quota counters (`quota:freemium`)
+  - Caching USDA nutrition data to reduce external API calls
+  - Distributed locks for background jobs (e.g., daily reports)
+
+### External Integrations (APIs)
+- **OpenAI GPT-4o Vision**: Primary AI engine for recognizing dishes and estimating weights from photos. Prompted to return structured JSON data via Pydantic models.
+- **Google Gemini**: Fallback vision model if OpenAI fails.
+- **USDA FoodData Central API**: Primary source for accurate macro-nutrients (calories, carbs, protein, fat) based on recognized dish names.
+- **Nutritionix API**: Fallback source for nutritional data.
+- **Langfuse**: LLM observability and tracing platform to monitor API costs, prompt performance, and latency.
+
+### Infrastructure & Deployment
+- **Docker & Docker Compose**: Containerization and local/production orchestration.
+- **Cloudflared (Cloudflare Tunnel)**: Securely exposes the local development server to the internet for Telegram Webhooks.
+
+---
+
+## Architecture Principles & Working Logic
+
+### 1. The Core Pipeline: Photo Analysis Flow
+The primary value of FoodShot is the seamless transition from a user photo to an insulin bolus recommendation. This pipeline is strictly defined in `photo_flow.py` and relies on specific service boundaries.
+
+**Step-by-step Execution:**
+1. **Photo Reception**: The user sends a photo. The Webhook endpoint (FastAPI) receives it and passes it to the aiogram Router.
+2. **Rate & Quota Limits**: `security.py` checks burst limits (Token Bucket via Redis) and `freemium.py` validates daily quotas.
+3. **Vision Recognition**: The photo is compressed (via Pillow) and sent to OpenAI GPT-4o. The bot uses a strict system prompt to force the LLM to return a JSON object (`FoodRecognitionResult`) containing the dish name (in English and localized), estimated weight in grams, and a confidence score.
+4. **Nutrition Fetching**: The English dish name is queried against the USDA API (`nutrition.py`). To optimize latency and reduce API costs, results are cached in Redis for 7 days.
+5. **Bolus Calculation**: `calc.py` applies a transparent mathematical formula using the user's specific health parameters. 
+
+### 2. Medical Transparency Constraint
+A critical design principle is that AI (GPT-4o/Gemini) is **only used for visual recognition**. 
+- The AI does not calculate macros.
+- The AI does not provide medical advice.
+- All nutritional data strictly comes from verified databases (USDA).
+- All insulin calculations use transparent math formulas based on the user's Insulin-to-Carb Ratio (ICR), Insulin Sensitivity Factor (ISF), and Target Blood Glucose.
+
+**Bolus Formula:**
+- **Carb Dose** = Carbohydrates (g) / ICR
+- **Correction Dose** = (Current BG - Target BG) / ISF (Applied only if Current BG > Target BG)
+- **Total Dose** = Carb Dose + Correction Dose
+
+### 3. Asynchronous by Default
+Every layer of the application is designed to be non-blocking. 
+- Database queries use `asyncpg` and async SQLAlchemy sessions.
+- External API calls (OpenAI, USDA, Langfuse) use `aiohttp` or async wrappers.
+- The entrypoint uses FastAPI with ASGI for high-throughput webhook handling.
+
+### 4. Background Jobs & Orchestration
+Separate background processes manage out-of-band tasks without blocking the main bot handlers:
+- **Daily Reports** (`daily_report.py`): Runs continuously, checking user timezones to send customized daily summaries. Redis locks ensure idempotency (preventing duplicate reports).
+- **Data Retention** (`retention.py`): Cleans up old states and generates export data asynchronously.
+
+### 5. Separation of Concerns
+- **Entrypoints** (FastAPI, Polling) are completely decoupled from **Bot Logic** (aiogram handlers).
+- **Services** contain pure business logic (vision, nutrition, calculations) and do not know about Telegram updates or DB sessions.
+- **Data Access** is abstracted behind `crud.py`, ensuring services only deal with standard Python types or Pydantic models, while `crud.py` manages SQLAlchemy ORM objects.

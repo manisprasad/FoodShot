@@ -73,5 +73,5 @@ svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640"
 out_path = Path("docs/banner.svg")
 with open(out_path, "w", encoding="utf-8") as f:
     f.write(svg_content)
-    
+
 print(f"Generated SVG at {out_path}")
