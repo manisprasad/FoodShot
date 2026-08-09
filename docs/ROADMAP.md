@@ -1,13 +1,12 @@
-# FoodShot — MVP Specification
+# FoodShot — Project Roadmap
 
 > Telegram bot for general food tracking, calorie/macro logging, and nutrition diary, with an optional Diabetes Mode for insulin dose suggestions.
 
 ---
 
-## Scope
+## Current Status
 
-This document defines the **minimum viable product** of FoodShot.
-Everything outside this scope is post-MVP.
+This document outlines the current feature set of FoodShot and the planned roadmap for future updates.
 
 ---
 
@@ -233,15 +232,14 @@ WEBHOOK_URL=https://yourdomain.com/webhook
 
 ---
 
-## Out of Scope (Post-MVP)
+## Planned Features (Future / Premium)
 
-- Meal history charts / export to CSV
-- CGM integration (Dexcom, Libre)
-- Basal rate recommendations
-- Multiple insulin types per user
-- Web dashboard
-- Internationalization (i18n)
-- Push reminders
+- **Advanced Data & Export:** Meal history charts and CSV export for doctors.
+- **CGM Integration:** Connect with Dexcom / FreeStyle Libre for live glucose context.
+- **Advanced Bolus Setup:** Basal rate recommendations and multiple insulin types support.
+- **Web Dashboard:** A full web interface to manage your diary and settings.
+- **Push Reminders:** Smart notifications to log meals and check glucose post-meal.
+- **Multi-component meals:** Advanced AI parsing for complex plates.
 
 ---
 
@@ -251,5 +249,5 @@ WEBHOOK_URL=https://yourdomain.com/webhook
 
 ---
 
-*FoodShot MVP — v0.1*
+*FoodShot Roadmap*
 *License: Business Source License 1.1 (BUSL-1.1)*

@@ -1,108 +1,91 @@
 <div align="center">
-  <img src="./docs/banner.svg" alt="FoodShot Banner" width="100%"/>
+  <img src="./docs/for-readme/banner.svg" alt="FoodShot Banner" width="100%"/>
+</div>
+
+<h3 align="center">FoodShot is a medical-grade nutrition diary — not a meal tracker.</h3>
+
+<div align="center">
+  It uses Telegram as a zero-friction interface to build daily habits. Snap a photo ➔ Vision AI identifies the dish ➔ USDA calculates exact macros. Every meal becomes structured, exportable data — built for people who take their health seriously.
 </div>
 
 ---
 
-## 🎯 The Problem We Solve
-Keeping track of daily meals, calories, and macros can be time-consuming and tedious.
+## Features in Action
 
-**FoodShot** makes food logging effortless. Built entirely inside Telegram, it allows you to simply snap a photo of your meal. The bot identifies the dish, estimates the portion weight using AI, fetches precise nutritional data (carbs, protein, fat, calories) from official databases (USDA), and logs it to your history.
-
-For users managing diabetes, FoodShot features an optional **Diabetes Mode** that tracks blood glucose, ICR/ISF parameters, and estimates suggested insulin boluses using standard transparent medical formulas.
-
-## ✨ Core Philosophy
-- **Easy Logging:** Take a picture, get detailed nutrition info instantly, and save it to your history.
-- **AI as a simple helper:** OpenAI GPT-4o Vision is strictly used for food and weight identification, not for medical advice or diary management.
-- **Optional Medical Tracking:** Advanced diabetes settings are turned off by default, keeping the app simple for general users.
-- **Doctor-Friendly Exports:** Export your history and glucose patterns into CSV/Excel for your doctor or nutritionist.
+| <img src="./docs/for-readme/demo-vision.gif" width="100%"> | <img src="./docs/for-readme/demo-diabetes-mode.gif" width="100%"> |
+| :---: | :---: |
+| **AI Food Recognition**<br>Snap a photo and get precise USDA nutrition instantly. | **Diabetes Mode**<br>Calculates suggested insulin boluses based on your ICR/ISF. |
+| <img src="./docs/for-readme/demo-day-report.gif" width="100%"> | <img src="./docs/for-readme/demo-export.gif" width="100%"> |
+| **Daily Report**<br>View your calorie and macronutrient progress for the day. | **Data Export & History**<br>Export your medical diary to CSV for your doctor. |
 
 > **Disclaimer:** The bot is an assistant, not a doctor. All calculations are transparent but serve as estimates. It does not replace professional medical advice.
 
-## 🛠 Tech Stack
-We built FoodShot with modern, asynchronous, and scalable technologies:
+## Architecture
 
-- **Bot Framework:** [aiogram 3.x](https://docs.aiogram.dev/)
-- **Web Server:** [FastAPI](https://fastapi.tiangolo.com/) (High-performance Webhook handler)
-- **Database:** PostgreSQL 15 + SQLAlchemy 2.0 (`asyncpg`) + Alembic for migrations
-- **State & Cache:** Redis 7 (for FSM and API caching)
-- **Integrations:** OpenAI GPT-4o Vision API, USDA FoodData Central API
-- **Observability:** Langfuse (LLM tracing and observability)
-- **Localization:** `aiogram-i18n` with Fluent (EN, UK)
-- **Deployment:** Docker, Docker Compose, Cloudflare Zero Trust Tunnels
-- **TUI:** Textual (for interactive operations console)
-- **Testing:** `pytest` + `pytest-asyncio`
+The simplified version. The real system has 6 layers — background job runners, a terminal admin panel, FSM state management, dual-source vision pipeline (OpenAI → Gemini fallback), dual-source nutrition pipeline (USDA → Nutritionix fallback), LLM observability via Langfuse, and Cloudflare Zero Trust routing. The diagram below doesn't do it justice.
 
-## 🏗 Architecture
-The system supports both polling (for local development) and webhooks (for production). When using webhooks, Telegram sends updates to our FastAPI endpoint, which securely validates them and routes them to `aiogram` handlers.
+→ [See the full architecture](./docs/architecture/README.md)
 
-![FoodShot Architecture](./docs/foodshot_architecture.svg)
+```mermaid
+flowchart TD
+    User([Telegram Client]) --> Webhook[FastAPI Webhook]
+    Webhook --> Core[aiogram Dispatcher]
+    
+    Core --> Pipeline[Analysis Pipeline]
+    Core --> Jobs[Background Jobs<br>daily_report, retention, broadcast]
+    Core --> TUI[Admin TUI<br>Textual]
+    
+    Pipeline --> Vision[GPT-4o Vision<br>identify dish]
+    Pipeline --> Nutrition[USDA REST API<br>calculate macros]
+    
+    Vision --> DB[(PostgreSQL<br>users, meals)]
+    Nutrition --> DB
+    
+    Redis[(Redis<br>FSM state, rate limits)] -.-> DB
+```
 
-## 🚀 Getting Started (Local Development)
+## Built-in Operations Console
 
-Want to run FoodShot locally to test it or record a demo? Here is the setup:
+Nobody expects a full terminal dashboard in a food tracker.
 
-### Prerequisites
-- Docker and Docker Compose
-- Taskfile (`go-task`)
-- Python 3.11+
-- Poetry
-- Cloudflare Tunnel (`cloudflared`) or [ngrok](https://ngrok.com/) (for exposing local webhook, optional)
+FoodShot ships with an interactive TUI (powered by Textual) to manage the entire system locally or over SSH — grant/revoke Premium access, browse meal history, resolve FSM state conflicts, all without touching SQL.
 
-### 1. Configuration
+<div align="center">
+  <img src="./docs/for-readme/demo-ops-panel.gif" alt="Admin TUI Demo" width="100%">
+</div>
+
+→ [Admin console docs](./docs/admin.md)
+
+## Getting Started
+
+The fastest way — just open Telegram and try it:
+
+[![Telegram Bot](https://img.shields.io/badge/Telegram-@foodshot__bot-2CA5E0?style=for-the-badge&logo=telegram&logoColor=white)](https://t.me/foodshot_bot)
+
+Want to run it locally or self-host:
+
 ```bash
-git clone <repo_url> && cd foodshot
+git clone git@github.com:soroqn1/FoodShot.git && cd foodshot
 cp .env.example .env
-```
-Edit `.env` and fill in your keys (Telegram Token, OpenAI, etc.).
-
-### 2. Start the Application
-
-You can start the app in two ways: **Webhook mode** or **Polling mode**.
-
-#### Option A: Polling Mode (Easiest for local dev)
-Start the database and Redis, then run the bot locally via polling:
-```bash
-task install
-task poll
+# fill in your keys, then:
+task install && task dev   # start webhook & services
 ```
 
-#### Option B: Webhook Mode
-Start dependencies and FastAPI locally:
-```bash
-task install
-task dev
-```
-Then expose the webhook using a tunnel (like Cloudflare):
-```bash
-task tunnel
-```
-Copy the public `https://` URL generated by your tunnel and update `.env`:
-```env
-WEBHOOK_URL=https://<your-tunnel-url>/webhook
-```
-Restart the bot (`task dev`), and it will automatically register the new webhook URL with Telegram.
+→ [Full setup guide](./docs/setup.md) — webhook mode, Cloudflare tunnel, migrations, all commands.
 
-### 3. Database Migrations
-Don't forget to run migrations to initialize your database tables:
-```bash
-task db:migrate
-```
+---
 
-## 🛠 Useful Commands
+## Contributing
 
-FoodShot uses `Taskfile` for common operations:
-- `task lint` / `task format` — run Ruff linter/formatter.
-- `task test` — run `pytest` test suite.
-- `task db:makemigrations "message"` — create a new Alembic migration.
-- `task ops` — launch the interactive Operations TUI Console.
-- `task broadcast` — broadcast release updates to users.
+Issues and PRs are welcome. For significant changes — open an issue first to discuss what you'd like to change. Tests for medical math are strictly required.
 
-## 🧪 Testing
-We maintain rigorous tests for critical components, especially the medical math:
-```bash
-task test
-```
+---
 
-## 📜 License
-Commercial / Proprietary. Selected source files are made available for portfolio demonstration purposes only. All rights reserved.
+## License
+
+**Business Source License 1.1 (BUSL-1.1)**
+
+You are completely free to clone, run, and modify this project for personal use, education.
+Commercial or production use is strictly prohibited without explicit permission.
+
+Commercial use — contact me directly.
