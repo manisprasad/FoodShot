@@ -133,10 +133,10 @@ async def complete_meal_analysis(
             return {"success": False, "error_key": "error-number"}
 
     weight_g = data["weight_g"]
-    carbs = data["carbs_per_g"] * weight_g
+    carbs = round(data["carbs_per_g"] * weight_g, 1)
     kcal = int(data["kcal_per_g"] * weight_g)
-    protein = data["protein_per_g"] * weight_g
-    fat = data["fat_per_g"] * weight_g
+    protein = round(data["protein_per_g"] * weight_g, 1)
+    fat = round(data["fat_per_g"] * weight_g, 1)
 
     bolus_result = None
     bolus_dose = None
