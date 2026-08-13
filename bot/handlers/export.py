@@ -200,13 +200,13 @@ async def process_export_action(
             [
                 date_str,
                 log.dish_name,
-                log.portion_g,
+                round(log.portion_g, 1) if log.portion_g is not None else "",
                 log.kcal,
-                log.carbs_g,
-                log.protein_g,
-                log.fat_g,
-                log.current_bg if log.current_bg is not None else "",
-                log.bolus_dose if log.bolus_dose is not None else "",
+                round(log.carbs_g, 1) if log.carbs_g is not None else "",
+                round(log.protein_g, 1) if log.protein_g is not None else "",
+                round(log.fat_g, 1) if log.fat_g is not None else "",
+                round(log.current_bg, 1) if log.current_bg is not None else "",
+                round(log.bolus_dose, 1) if log.bolus_dose is not None else "",
             ]
         )
 

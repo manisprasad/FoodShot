@@ -112,3 +112,40 @@ def test_get_export_range():
     assert start_local.day == 1
     assert end_local.month == 6
     assert end_local.day == 30
+
+
+@pytest.mark.asyncio
+async def test_process_export_action_rounds_numeric_values():
+    callback = AsyncMock()
+    callback.data = "export:month:2026-07"
+    callback.from_user.id = 12345
+    session = AsyncMock()
+    i18n = I18n("en")
+
+    log1 = MealLog(
+        id=1,
+        user_id=12345,
+        dish_name="Test Food",
+        portion_g=150.0,
+        kcal=350.0,
+        carbs_g=40.056,
+        protein_g=15.245,
+        fat_g=10.944,
+        bolus_dose=3.25,
+        current_bg=7.26,
+        photo_file_id="photo1",
+        created_at=datetime.now(),
+    )
+
+    with patch("bot.handlers.export.crud.get_meal_logs_in_range", return_value=[log1]):
+        await process_export_action(callback, session, i18n)
+        callback.answer.assert_called_once()
+        callback.bot.send_document.assert_called_once()
+        call_kwargs = callback.bot.send_document.call_args[1]
+        csv_data = call_kwargs["document"].data.decode("utf-8").lstrip("\ufeff")
+        data_row = csv_data.splitlines()[1]
+        assert "40.1" in data_row
+        assert "15.2" in data_row
+        assert "10.9" in data_row
+        assert "3.2" in data_row
+        assert "7.3" in data_row
